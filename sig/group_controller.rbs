@@ -1,0 +1,21 @@
+class GroupController
+  def add_group: -> bool
+
+  def get_group_list: -> array[Group]
+
+  def get_group_list_by_content_id: -> array[Group]
+
+  def get_group_list_with_count: -> hash[Group, Page]
+
+  def get_one_group: -> Group
+
+  def get_selected_group_list: -> array[Group]
+
+  def modify_one_group: -> bool
+
+  def remove_mapping_group: -> nil
+
+  def remove_one_group: -> nil
+
+  def set_mapping_group: -> nil
+end

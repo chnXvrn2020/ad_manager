@@ -1,0 +1,7 @@
+class LayoutChanger
+  def self.views: -> []
+
+  def change_layout: -> nil
+
+  def set_layout: -> nil
+end

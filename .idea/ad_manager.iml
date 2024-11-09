@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="RUBY_MODULE" version="4">
+  <component name="ModuleRunConfigurationManager">
+    <shared />
+  </component>
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/features" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/spec" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
+    </content>
+    <orderEntry type="jdk" jdkName="ruby-3.3.4-p94" jdkType="RUBY_SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="ast (v2.4.2, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="atk (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="bundler (v2.5.6, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="cairo (v1.17.13, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="cairo-gobject (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="concurrent-ruby (v1.2.3, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ffi (v1.17.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="fiddle (v1.1.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="gdk3 (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="gdk_pixbuf2 (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="gio2 (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="glib2 (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="gobject-introspection (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="gtk3 (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="i18n (v1.14.4, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="json (v2.7.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="language_server-protocol (v3.17.0.3, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="lint_roller (v1.1.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="matrix (v0.4.2, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="minitest (v5.20.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="native-package-installer (v1.1.9, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="pango (v4.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="parallel (v1.24.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="parser (v3.2.2.4, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="pkg-config (v1.5.6, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="racc (v1.7.3, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rainbow (v3.1.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rake (v13.1.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="red-colors (v0.4.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="regexp_parser (v2.8.3, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rexml (v3.2.6, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rubocop (v1.57.2, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rubocop-ast (v1.30.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="rubocop-performance (v1.19.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ruby-progressbar (v1.13.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="sqlite3 (v1.7.3, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="standard (v1.32.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="standard-custom (v1.0.2, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="standard-performance (v1.2.1, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="unicode-display_width (v2.5.0, ruby-3.3.4-p94) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="win32-sound (v0.6.2, ruby-3.3.4-p94) [gem]" level="application" />
+  </component>
+  <component name="RakeTasksCache-v2">
+    <option name="myRootTask">
+      <RakeTaskImpl id="rake">
+        <subtasks>
+          <RakeTaskImpl description="Build ad_manager-0.1.0.gem into the pkg directory" fullCommand="build" id="build" />
+          <RakeTaskImpl id="build">
+            <subtasks>
+              <RakeTaskImpl description="Generate SHA512 checksum if ad_manager-0.1.0.gem into the checksums directory" fullCommand="build:checksum" id="checksum" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl description="Remove any temporary products" fullCommand="clean" id="clean" />
+          <RakeTaskImpl description="Remove any generated files" fullCommand="clobber" id="clobber" />
+          <RakeTaskImpl description="Build and install ad_manager-0.1.0.gem into system gems" fullCommand="install" id="install" />
+          <RakeTaskImpl id="install">
+            <subtasks>
+              <RakeTaskImpl description="Build and install ad_manager-0.1.0.gem into system gems without network access" fullCommand="install:local" id="local" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl description="Create tag v0.1.0 and build and push ad_manager-0.1.0.gem to" fullCommand="release[remote]" id="release[remote]" />
+          <RakeTaskImpl description="Lint with the Standard Ruby style guide" fullCommand="standard" id="standard" />
+          <RakeTaskImpl id="standard">
+            <subtasks>
+              <RakeTaskImpl description="Lint and automatically make safe fixes with the Standard Ruby style guide" fullCommand="standard:fix" id="fix" />
+              <RakeTaskImpl description="Lint and automatically make fixes (even unsafe ones" fullCommand="standard:fix_unsafely" id="fix_unsafely" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl description="Run the test suite" fullCommand="test" id="test" />
+          <RakeTaskImpl id="test">
+            <subtasks>
+              <RakeTaskImpl description="Print out the test command" fullCommand="test:cmd" id="cmd" />
+              <RakeTaskImpl description="Show which test files fail when run in isolation" fullCommand="test:isolated" id="isolated" />
+              <RakeTaskImpl description="Show bottom 25 tests wrt time" fullCommand="test:slow" id="slow" />
+              <RakeTaskImpl description="" fullCommand="test:deps" id="deps" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl description="" fullCommand="default" id="default" />
+          <RakeTaskImpl description="" fullCommand="release" id="release" />
+          <RakeTaskImpl id="release">
+            <subtasks>
+              <RakeTaskImpl description="" fullCommand="release:guard_clean" id="guard_clean" />
+              <RakeTaskImpl description="" fullCommand="release:rubygem_push" id="rubygem_push" />
+              <RakeTaskImpl description="" fullCommand="release:source_control_push" id="source_control_push" />
+            </subtasks>
+          </RakeTaskImpl>
+        </subtasks>
+      </RakeTaskImpl>
+    </option>
+  </component>
+</module>

@@ -1,0 +1,3 @@
+class HomeSearch
+  attr_reader keyword: string
+end

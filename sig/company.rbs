@@ -1,0 +1,13 @@
+class Company
+  attr_accessor current_yn: string
+  attr_accessor delete_date: string
+  attr_accessor id: int
+  attr_accessor insert_date: string
+  attr_accessor name: string
+  attr_accessor parent_id: int
+  attr_accessor type: int
+  attr_accessor update_date: string
+  attr_accessor use_yn: string
+
+  def initialize: -> Company
+end

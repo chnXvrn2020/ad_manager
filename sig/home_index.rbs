@@ -1,0 +1,64 @@
+# import 'rbs'
+
+class HomeIndex
+  @anime_controller: AnimeController
+  @book_controller: BookController
+  @book_option_combo: Gtk::ComboBoxText
+  @book_option_id: nil|int
+  @common_controller: CommonController
+  @content_controller: ContentController
+  @current_page: int
+  @current_type: int
+  @exit_btn: Gtk::Button
+  @first_page_btn: Gtk::Button
+  @frame: Gtk::Frame
+  @group_controller: GroupController
+  @keyword: nil|string
+  @last_page_btn: Gtk::Button
+  @list_scroll: Gtk::ScrolledWindow
+  @list_widget: Gtk::ListBox
+  @manage_btn: Gtk::Button
+  @next_btn: Gtk::Button
+  @page: nil|Page
+  @pagination_h_box: Gtk::Box
+  @pagination_num_btn: []
+  @prev_btn: Gtk::Button
+  @recommend_btn: Gtk::Button
+  @search_btn: Gtk::Button
+  @stack: Gtk::Stack
+  @statistics_btn: Gtk::Button
+  @status_combo: Gtk::ComboBoxText
+  @status_id: nil|int
+  @table_search_btn: Gtk::Button
+  @type_combo: Gtk::ComboBoxText
+  @type_id: nil|int
+  @window: Gtk::Window
+
+  attr_reader frame: Gtk::Frame
+
+  def initialize: -> nil
+
+  def create_pagination: -> nil
+
+  def db_data: -> nil
+
+  def init_pagination_opt_btn: -> nil
+
+  def initialize_ui: -> nil
+
+  def load_list_data: -> nil
+
+  def pagination_opt_btn_closure: -> nil
+
+  def set_pagination_btn_signal_connect: -> nil
+
+  def set_pagination_opt_btn: -> nil
+
+  def set_ui: -> nil
+
+  def show_list: -> nil
+
+  def type_selector: -> nil
+
+  def view_content: -> nil
+end

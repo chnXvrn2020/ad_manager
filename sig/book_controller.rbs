@@ -1,0 +1,25 @@
+class BookController
+  def add_book: -> int
+
+  def get_book_by_id: -> Book
+
+  def get_book_count_by_group_id: -> int
+
+  def get_book_list: -> array[Book]
+
+  def get_book_list_with_count: -> hash[Book, Page]
+
+  def get_book_status: -> Book
+
+  def get_completed_book_count_by_group_id: -> int
+
+  def get_unselected_book_list: -> array[Book]
+
+  def modify_book: -> bool
+
+  def remove_book: -> nil
+
+  def set_mapping_book: -> nil
+
+  def set_remove_book: -> nil
+end

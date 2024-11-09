@@ -1,0 +1,29 @@
+class Page
+  @per_block: int
+
+  attr_reader current_block: int
+  attr_accessor current_page: int
+  attr_reader per_page: int
+  attr_reader total_block: int
+  attr_reader total_count: int
+
+  attr_reader total_pages: int
+
+  def initialize: -> Page
+
+  def first_page: -> nil
+
+  def last_page: -> nil
+
+  def limit: -> int
+
+  def next_page: -> nil
+
+  def offset: -> int
+
+  def page_numbers: -> []
+
+  def previous_page: -> nil
+
+  def total_pages: -> int
+end

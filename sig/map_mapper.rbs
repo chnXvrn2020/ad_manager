@@ -1,0 +1,9 @@
+class MapMapper
+  def delete_group_mapping: -> nil
+
+  def delete_one_mapping: -> nil
+
+  def insert_mapping: -> nil
+
+  def select_content_mapping: -> { }
+end

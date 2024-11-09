@@ -1,0 +1,15 @@
+class ContentController
+  def add_content: -> int
+
+  def find_content_on_map: -> untyped
+
+  def get_content_list: -> hash[Content, Page]
+
+  def get_one_content: -> Content
+
+  def modify_content: -> bool
+
+  def recommend_anime: -> array
+
+  def remove_content: -> nil
+end

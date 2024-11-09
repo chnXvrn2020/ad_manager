@@ -1,0 +1,21 @@
+class BookMapper
+  def check_duplicate_name: -> bool
+
+  def delete_book: -> nil
+
+  def insert_book: -> int
+
+  def select_all: -> { }
+
+  def select_all_count: -> int
+
+  def select_book_by_id: -> { }
+
+  def select_book_list: -> { }
+
+  def select_book_status: -> { }
+
+  def select_completed_book_count_by_group_id: -> int
+
+  def update_book: -> nil
+end

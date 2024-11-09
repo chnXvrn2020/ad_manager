@@ -1,0 +1,7 @@
+class FilesMapper
+  def delete_file: -> nil
+
+  def insert_file: -> nil
+
+  def select_by_tb_and_id: -> { }
+end

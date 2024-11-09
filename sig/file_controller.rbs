@@ -1,0 +1,11 @@
+class FileController
+  def self.img_path: -> string
+
+  def add_image_file: -> nil
+
+  def delete_image_file: -> nil
+
+  def get_image_info: -> Files
+
+  def modify_image_file: -> nil
+end

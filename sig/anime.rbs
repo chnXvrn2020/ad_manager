@@ -1,0 +1,20 @@
+class Anime
+  attr_accessor completion_date: string
+  attr_accessor created_date: string
+  attr_accessor current_episode: int
+  attr_accessor delete_date: string
+  attr_accessor episode: int
+  attr_accessor id: int
+  attr_accessor insert_date: string
+  attr_accessor media: int|string
+  attr_accessor name: string
+  attr_accessor ratio: int|string
+  attr_accessor rip: int|string
+  attr_accessor status: int
+  attr_accessor storage: int|string
+  attr_accessor studio: string
+  attr_accessor update_date: string
+  attr_accessor use_yn: string
+
+  def initialize: -> Anime
+end

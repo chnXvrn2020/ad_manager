@@ -1,0 +1,27 @@
+class Gtk
+  class Window
+  end
+
+  class Frame
+  end
+
+  class ListBox
+  end
+
+  class Box
+  end
+
+  class Button
+  end
+
+  class ComboBoxText
+  end
+
+  class ScrolledWindow
+
+  end
+
+  class Stack
+
+  end
+end

@@ -1,0 +1,31 @@
+class AnimeMapper
+  def check_duplicate_name: -> bool
+
+  def check_others: -> int
+
+  def delete_anime: -> nil
+
+  def insert_anime: -> int
+
+  def insert_anime_status: -> nil
+
+  def select_all: -> { }
+
+  def select_all_anime_count: -> int
+
+  def select_all_count: -> int
+
+  def select_anime_by_id: -> { }
+
+  def select_anime_list_by_group_id: -> { }
+
+  def select_anime_status: -> { }
+
+  def select_current_status_by_group_id: -> { }
+
+  def update_anime: -> nil
+
+  def update_anime_complete: -> nil
+
+  def update_anime_current_episode: -> nil
+end

@@ -1,0 +1,15 @@
+class CommonMapper
+  def check_duplicate_name: -> bool
+
+  def delete_by_id: -> nil
+
+  def insert_common: -> nil
+
+  def select_by_type: -> { }
+
+  def select_by_types: -> { }
+
+  def select_count_by_type: -> int
+
+  def update_by_id: -> nil
+end

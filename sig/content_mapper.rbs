@@ -1,0 +1,17 @@
+class ContentMapper
+  def check_duplicate_name: -> bool
+
+  def delete_content: -> nil
+
+  def insert_content: -> int
+
+  def select_all_content_with_group: -> { }
+
+  def select_by_id: -> { }
+
+  def select_content: -> { }
+
+  def select_content_count: -> int
+
+  def update_content: -> nil
+end

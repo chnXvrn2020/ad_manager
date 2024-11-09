@@ -1,0 +1,10 @@
+class Map
+  attr_accessor from_id: int
+  attr_accessor from_tb: string
+  attr_accessor id: int
+
+  attr_accessor refer_id: int
+  attr_accessor refer_tb: string
+
+  def initialize: -> Map
+end
