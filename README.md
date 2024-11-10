@@ -1,39 +1,53 @@
 # AdManager
 
-TODO: Delete this and the text below, and describe your gem
+## 概要
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ad_manager`. To experiment with that code, run `bin/console` for an interactive prompt.
+アニメ、マンガやラノベなどの情報データの管理ツール。
 
-## Installation
+管理する情報データの追加、更新、削除ができ、また情報データの現状態（鑑賞済みか否か）をチェック、及び変更（鑑賞済みへと）できる。
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+### 使用言語及びフレイムワーク
 
-Install the gem and add to the application's Gemfile by executing:
+このプロジェクトは下記の言語とフレイムワークで制作しました。
 
-    $ bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+- **言語**: Ruby 3.3.4
+- **フレイムワーク及びライブラリー**:
+    - ffi 1.17.0: 外部関数インターフェースのライブラリー
+    - gtk3 4.2.1: GUI 開発の為のGTK+ 3ライブラリー
+    - i18n 1.14.4: 多国語サーポートの為の国際化（I18N）ライブラリー
+    - minitest 5.20.0: 単位テストフレイムワーク
+    - ostruct 0.6.0: OpenStructクラス
+    - rake 13.1.0: Ruby作業自動化の為のビルドプログラム
+    - sqlite3 1.7.3: SQLiteデータベース接続の為のライブラリー
+    - standard 1.32.1: Rubyコードスタイルの標準化の為のツール 
+    - win32-sound 0.6.2: Windowsでのビープ音再生の為のライブラリー
+    - bundler 2.5.6: 依存性管理の為のツール
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+### インストール
 
-    $ gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+`Ruby 3.3.4`をインストールしてから下記の通りに進む。
 
-## Usage
+1. https://www.msys2.org/ のページでMSYS2のインストールファイルをダウンロードする。
+2. ダウンロードしたインストールファイルを実行してMSYS2をインストールする。
+3. インストールが完了したら、`MSYS2 MSYS`ターミナルを実行してから、次のコマンドでアップデートに進む。
+   ```bash
+    pacman -Syu
+    ```
+4. 次に、RubyでGTK3を使用する為のライブラリーと開発ツールをインストールする。MSYS2ターミナルで次のコマンドを実行する。
+   ```bash
+    pacman -S mingw-w64-x86_64-gtk3
+   ```
+5. 最後に本プロジェクトでのライブラリーやフレイムワークを使用する為に次のコマンドを実行する。
+   ```bash
+    bundle install
+   ```
+   
+### データベース
 
-TODO: Write usage instructions here
+本プロジェクトではデータベースとして`sqlite3`を使用している。
 
-## Development
+データベースの初期設定のために次のコマンドを実行する。
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ad_manager. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/ad_manager/blob/master/CODE_OF_CONDUCT.md).
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
-
-## Code of Conduct
-
-Everyone interacting in the AdManager project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/ad_manager/blob/master/CODE_OF_CONDUCT.md).
+```bash
+    sqlite3 db/a_db ".read script.sql"
+```

@@ -27,6 +27,7 @@ class ImageEdit < Gtk::Dialog
     @img_del = del
     @controller = FileController.new
     @img_path = './files/akiba_images/'
+    @no_image = './assets/images/no_image_tate.jpg'
 
     set_ui
     set_signal_connect
@@ -93,13 +94,15 @@ class ImageEdit < Gtk::Dialog
   def no_image
     @img = nil
 
-    pixbuf = GdkPixbuf::Pixbuf.new(file: './assets/images/no_image_tate.jpg')
+    pixbuf = GdkPixbuf::Pixbuf.new(file: @no_image)
 
     set_image(pixbuf)
   end
 
   def set_image(pixbuf)
     return if pixbuf.nil?
+
+    Dir.mkdir(@img_path) unless File.directory?(@img_path)
 
     new_width = 450
     new_height = 600
@@ -148,7 +151,6 @@ class ImageEdit < Gtk::Dialog
     file_dialog.set_default_size(200, 200)
     file_dialog.set_position(Gtk::WindowPosition::CENTER)
     file_dialog.resizable = false
-
 
     # ファイルのフィールター
     filter = Gtk::FileFilter.new
