@@ -118,9 +118,6 @@ class CompanyMapper
     placeholder = ides.map { '?' }.join(',')
     sql += " AND id IN (#{placeholder})"
 
-    p sql
-    p ides
-
     args = [type, ides]
 
     db.execute(sql, args)

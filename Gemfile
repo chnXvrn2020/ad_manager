@@ -13,6 +13,10 @@ gem 'standard', '~> 1.3'
 
 gem 'gtk3'
 
+gem 'glib2'
+
+gem 'cairo'
+
 gem 'sqlite3'
 
 gem 'i18n'

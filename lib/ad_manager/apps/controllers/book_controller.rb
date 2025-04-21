@@ -158,4 +158,12 @@ class BookController
     count
   end
 
+  def get_all_book_count(group_id)
+    db = connect_to_db
+    count = BookMapper.instance.select_all_book_count_by_group_id(db, group_id)
+    db.close
+
+    count
+  end
+
 end

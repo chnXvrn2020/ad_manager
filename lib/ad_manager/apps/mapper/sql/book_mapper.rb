@@ -8,9 +8,11 @@ class BookMapper
   def select_book_list(db, type, group_id, keyword = nil)
 
     sql = <<~SQL
-      SELECT tb.id, tb.name
+      SELECT tb.id, tb.name, ifnull(tc.name, '未鑑賞') AS status
       FROM tb_book tb
-               LEFT JOIN tb_map g ON g.refer_tb = 'tb_book' AND g.refer_id = tb.id
+         LEFT JOIN tb_map g ON g.refer_tb = 'tb_book' AND g.refer_id = tb.id
+         LEFT JOIN tb_book_status tbs ON tb.id = tbs.book_id
+         LEFT JOIN tb_common tc ON tc.id = tbs.status
       WHERE tb.use_yn = 'Y'
         AND tb.type = ?
         AND g.from_id = ?
@@ -103,19 +105,17 @@ class BookMapper
       args << "%#{keyword}%"
     end
 
-    if status.nil?
-      sql += ' ORDER BY numeric_sort(name)'
+    case status
+    when 32
+      sql += ' GROUP BY tb.id, tb.name
+               HAVING COUNT(tb.id) > 0 AND COUNT(tb.id) <= (SELECT COUNT(tbs.id))
+               ORDER BY tbs.completion_date'
+    when 3
+      sql += ' GROUP BY tb.id, tb.name
+               HAVING COUNT(tb.id) > (SELECT COUNT(tbs.id))
+               ORDER BY numeric_sort(tb.name)'
     else
-      case status
-      when 32
-        sql += ' GROUP BY tb.id, tb.name
-                 HAVING COUNT(tb.id) > 0 AND COUNT(tb.id) <= (SELECT COUNT(tbs.id))
-                 ORDER BY tbs.completion_date'
-      when 3
-        sql += ' GROUP BY tb.id, tb.name
-                 HAVING COUNT(tb.id) > (SELECT COUNT(tbs.id))
-                 ORDER BY numeric_sort(tb.name)'
-      end
+      sql += ' ORDER BY numeric_sort(name)'
     end
 
     sql += ' LIMIT ? OFFSET ?'
@@ -144,7 +144,7 @@ class BookMapper
       args << "%#{keyword}%"
     end
 
-    unless status.nil?
+    unless status == 1
       case status
       when 32
         sql += ' GROUP BY tb.id, tb.name
@@ -335,6 +335,23 @@ class BookMapper
     count = db.execute(sql, args)
 
     count[0][0]
+  end
+
+  def select_all_book_count_by_group_id(db, group_id)
+
+    sql = <<~SQL
+      SELECT count(*)
+      FROM tb_book tb
+               LEFT JOIN tb_map g ON g.refer_tb = 'tb_book' AND g.refer_id = tb.id
+      WHERE tb.use_yn = 'Y'
+        AND g.from_id = ?
+        ORDER BY tb.created_date
+    SQL
+
+    args = [group_id]
+
+    db.execute(sql, args).first[0]
+
   end
 end
 

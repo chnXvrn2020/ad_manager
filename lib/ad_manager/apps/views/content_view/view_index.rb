@@ -137,6 +137,7 @@ class ViewIndex
     book_data
     bottom_btn_frame
   end
+
   def set_signal_connect
     @group_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
@@ -415,6 +416,8 @@ class ViewIndex
           @status_label.text = status.status
 
           anime_status_btn(status.status, status)
+          load_group_list
+          load_anime_list
         rescue StandardError => e
           dialog_message(@window, :error, :modify_error, e.message)
           next
@@ -445,6 +448,8 @@ class ViewIndex
 
           @status_label.text = status.status
           anime_status_btn(status.status, status)
+          load_group_list
+          load_anime_list
         rescue StandardError => e
           dialog_message(@window, :error, :modify_error, e.message)
           next
@@ -481,6 +486,8 @@ class ViewIndex
           @anime_current_entry.text = status.current_episode.to_s
 
           anime_status_btn(status.status, status)
+          load_group_list
+          load_anime_list
         rescue StandardError => e
           dialog_message(@window, :error, :modify_error, e.message)
           next
@@ -578,6 +585,9 @@ class ViewIndex
           @book_status_label.text = status.status
 
           @book_complete_btn.sensitive = false
+
+          load_group_list
+          load_book_list
         rescue StandardError => e
           dialog_message(@window, :error, :modify_error, e.message)
           next
@@ -672,7 +682,9 @@ class ViewIndex
       row = Gtk::ListBoxRow.new
       data = truncate_string(item.name, 'view')
 
-      row.add(Gtk::Label.new(data))
+      status = group_status(item.id)
+
+      row.add(Gtk::Label.new(data + status))
       row.name = item.id.to_s
       row.halign = Gtk::Align::START
 
@@ -716,8 +728,9 @@ class ViewIndex
     anime.each do |item|
       row = Gtk::ListBoxRow.new
       data = truncate_string(item.name, 'view')
+      status = "　（#{item.status}）"
 
-      row.add(Gtk::Label.new(data))
+      row.add(Gtk::Label.new(data + status))
       row.name = item.id.to_s
       row.halign = Gtk::Align::START
 
@@ -735,7 +748,10 @@ class ViewIndex
 
     book.each do |item|
       row = Gtk::ListBoxRow.new
-      row.add(Gtk::Label.new(item.name))
+      data = truncate_string(item.name, 'view')
+      status = "　（#{item.status}）"
+
+      row.add(Gtk::Label.new(data + status))
       row.name = item.id.to_s
       row.halign = Gtk::Align::START
 

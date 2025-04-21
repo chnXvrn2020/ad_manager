@@ -119,7 +119,7 @@ class GroupMapper
       end
     end
 
-    unless status.nil?
+    unless status == 1
       case status
       when 32
         sql += ' GROUP BY tg.id, tg.name
@@ -143,6 +143,11 @@ class GroupMapper
                 AND COUNT(ta.id) > (SELECT COUNT(tas.id)))
                 OR (COUNT(tb.id) > 0
                 AND (SELECT COUNT(tbs.id)) <= 0)'
+      when 4
+        sql += 'GROUP BY tg.id, tg.name
+                HAVING (COUNT(ta.id) > 0
+                AND (SELECT COUNT(tas.id)) > 0
+                AND ((SELECT COUNT(IIF(tas.status = 4, 1, NULL)) > 0)))'
       end
     end
 
@@ -178,7 +183,7 @@ class GroupMapper
       end
     end
 
-    unless status.nil?
+    unless status == 1
       case status
       when 32
         sql += ' GROUP BY tg.id, tg.name
@@ -202,6 +207,11 @@ class GroupMapper
                 AND COUNT(ta.id) > (SELECT COUNT(tas.id)))
                 OR (COUNT(tb.id) > 0
                 AND (SELECT COUNT(tbs.id)) <= 0)'
+      when 4
+        sql += 'GROUP BY tg.id, tg.name
+                HAVING (COUNT(ta.id) > 0
+                AND (SELECT COUNT(tas.id)) > 0
+                AND ((SELECT COUNT(IIF(tas.status = 4, 1, NULL)) > 0)))'
       end
     end
 
@@ -236,7 +246,7 @@ class GroupMapper
       end
     end
 
-    unless status.nil?
+    unless status == 1
       case status
       when 32
         sql += ' GROUP BY tg.id, tg.name
@@ -286,7 +296,7 @@ class GroupMapper
       end
     end
 
-    unless status.nil?
+    unless status == 1
       case status
       when 32
         sql += ' GROUP BY tg.id, tg.name
@@ -402,6 +412,40 @@ class GroupMapper
 
     db.execute(sql, args)
 
+  end
+
+  def select_anime_status_list_by_group_id(db, group_id)
+    sql = <<~SQL
+      SELECT tas.status
+      FROM tb_group tg
+               LEFT JOIN tb_map AS ca ON ca.from_tb = 'tb_content' AND ca.refer_id = tg.id
+               LEFT JOIN tb_map AS cl ON cl.from_tb = 'tb_group' AND tg.id = cl.from_id
+               LEFT JOIN tb_anime AS ta ON cl.refer_tb = 'tb_anime' AND cl.refer_id = ta.id
+               LEFT JOIN tb_anime_status AS tas ON ta.id = tas.anime_id
+      WHERE tg.id = ?
+      AND cl.refer_tb = 'tb_anime'
+    SQL
+
+    args = [group_id]
+
+    db.execute(sql, args)
+  end
+
+  def select_book_status_list_by_group_id(db, group_id)
+    sql = <<~SQL
+      SELECT tbs.status
+      FROM tb_group tg
+               LEFT JOIN tb_map AS ca ON ca.from_tb = 'tb_content' AND ca.refer_id = tg.id
+               LEFT JOIN tb_map AS cl ON cl.from_tb = 'tb_group' AND tg.id = cl.from_id
+               LEFT JOIN tb_book AS tb ON cl.refer_tb = 'tb_book' AND cl.refer_id = tb.id
+               LEFT JOIN tb_book_status AS tbs ON tb.id = tbs.book_id
+      WHERE tg.id = ?
+        AND cl.refer_tb = 'tb_book'
+    SQL
+
+    args = [group_id]
+
+    db.execute(sql, args)
   end
 
 end

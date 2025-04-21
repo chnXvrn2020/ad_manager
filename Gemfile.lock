@@ -100,7 +100,9 @@ PLATFORMS
 
 DEPENDENCIES
   ad_manager!
+  cairo
   ffi
+  glib2
   gtk3
   i18n
   minitest (~> 5.16)

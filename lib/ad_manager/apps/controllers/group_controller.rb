@@ -192,4 +192,32 @@ class GroupController
     model
   end
 
+  def get_group_anime_status(group_id)
+    db = connect_to_db
+    data = GroupMapper.instance.select_anime_status_list_by_group_id(db, group_id)
+    db.close
+
+    anime = []
+
+    data.each do |hash|
+      anime << Anime.new(hash)
+    end
+
+    anime
+  end
+
+  def get_group_book_status(group_id)
+    db = connect_to_db
+    data = GroupMapper.instance.select_book_status_list_by_group_id(db, group_id)
+    db.close
+
+    book = []
+
+    data.each do |hash|
+      book << Anime.new(hash)
+    end
+
+    book
+  end
+
 end

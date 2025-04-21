@@ -284,5 +284,44 @@ def status_loop(rows)
   else
     0
   end
+end
+
+def group_status(id)
+
+  begin
+    anime_status = @group_controller.get_group_anime_status(id)
+    book_status = @group_controller.get_group_book_status(id)
+    book_count = @book_controller.get_all_book_count(id)
+  rescue StandardError => e
+    dialog_message(@window, :error, :db_error, e.message)
+    return
+  end
+
+  status = "　（#{I18n.t('view.unwatched')}）"
+
+  anime_status.each_with_index do |anime, i|
+    break if anime.status == nil and i <= 0
+
+    if anime.status == 2 or (anime.status == nil and i > 0) or book_count > 0
+      status = "　（#{I18n.t('view.watching')}）"
+      break
+    end
+
+    if anime.status == 4
+      status = "　（#{I18n.t('view.stop_watching')}）"
+      break
+    end
+
+    status = "　（#{I18n.t('view.completed')}）" if anime.status == 32 and anime_status.length == i + 1
+  end
+
+  book_status.each_with_index do |book, i|
+    break if book.status == nil and i <= 0
+
+    status = "　（#{I18n.t('view.watching')}）" if book.status == 32
+    status = "　（#{I18n.t('view.completed')}）" if book.status == 32 and book_status.length == i + 1
+  end
+
+  status
 
 end

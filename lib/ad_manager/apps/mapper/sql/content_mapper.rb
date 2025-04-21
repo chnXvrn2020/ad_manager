@@ -28,12 +28,15 @@ class ContentMapper
       end
     end
 
-    unless status.nil?
+
+    unless status == 1
       case status
       when 32
         sql += ' GROUP BY tc.id, tc.name
-                 HAVING (COUNT(ta.id) > 0 AND COUNT(ta.id) <= (SELECT COUNT(tas.id)))
-                 OR (COUNT(tb.id) > 0 AND COUNT(tb.id) <= (SELECT COUNT(tbs.id)))'
+                 HAVING COUNT(ta.id) > 0
+                 AND COUNT(ta.id) <= COUNT(IIF(tas.status = 32, 1, NULL))
+                 AND (COUNT(tb.id) = 0
+                 OR COUNT(tb.id) <= COUNT(IIF(tbs.status = 32, 1, NULL)))'
       when 2
         sql += ' GROUP BY tc.id, tc.name
                  HAVING (COUNT(ta.id) > 0
@@ -50,6 +53,11 @@ class ContentMapper
                 AND COUNT(ta.id) > (SELECT COUNT(tas.id)))
                 OR (COUNT(tb.id) > 0
                 AND (SELECT COUNT(tbs.id)) <= 0)'
+      when 4
+        sql += 'GROUP BY tc.id, tc.name
+                HAVING (COUNT(ta.id) > 0
+                AND (SELECT COUNT(tas.id)) > 0
+                AND ((SELECT COUNT(IIF(tas.status = 4, 1, NULL)) > 0)))'
       end
     end
 
@@ -84,7 +92,7 @@ class ContentMapper
       args << "%#{keyword}%"
     end
 
-    unless status.nil?
+    unless status == 1
       case status
       when 32
         sql += ' GROUP BY tc.id, tc.name
@@ -106,6 +114,11 @@ class ContentMapper
                 AND COUNT(ta.id) > (SELECT COUNT(tas.id)))
                 OR (COUNT(tb.id) > 0
                 AND (SELECT COUNT(tbs.id)) <= 0)'
+      when 4
+        sql += 'GROUP BY tc.id, tc.name
+                HAVING (COUNT(ta.id) > 0
+                AND (SELECT COUNT(tas.id)) > 0
+                AND ((SELECT COUNT(IIF(tas.status = 4, 1, NULL)) > 0)))'
       end
     end
 

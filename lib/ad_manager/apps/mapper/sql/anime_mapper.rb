@@ -8,9 +8,11 @@ class AnimeMapper
   def select_anime_list_by_group_id(db, group_id, keyword = nil)
 
     sql = <<~SQL
-      SELECT ta.id, ta.name
+      SELECT ta.id, ta.name, ifnull(tc.name, '未鑑賞') AS status
       FROM tb_anime ta
-               LEFT JOIN tb_map g ON g.refer_tb = 'tb_anime' AND g.refer_id = ta.id
+         LEFT JOIN tb_map g ON g.refer_tb = 'tb_anime' AND g.refer_id = ta.id
+         LEFT JOIN tb_anime_status tas ON ta.id = tas.anime_id
+         LEFT JOIN tb_common tc ON tc.id = tas.status
       WHERE ta.use_yn = 'Y'
         AND g.from_id = ?
     SQL
@@ -83,27 +85,25 @@ class AnimeMapper
       args << "%#{keyword}%"
     end
 
-    if status.nil?
-      sql += ' ORDER BY numeric_sort(name), created_date'
+    case status
+    when 32
+      sql += 'GROUP BY ta.id, ta.name
+              HAVING (COUNT(ta.id) > 0
+              AND COUNT(ta.id) <= (SELECT COUNT(tas.id)))
+              AND tas.status = ?
+              ORDER BY tas.completion_date'
+
+      args << status
+    when 2, 4
+      sql += ' AND tas.status = ?
+               ORDER BY ta.name'
+
+      args << status
+    when 3
+      sql += ' AND tas.anime_id IS NULL
+               ORDER BY ta.name'
     else
-      case status
-      when 32
-        sql += 'GROUP BY ta.id, ta.name
-                HAVING (COUNT(ta.id) > 0
-                AND COUNT(ta.id) <= (SELECT COUNT(tas.id)))
-                AND tas.status = ?
-                ORDER BY tas.completion_date'
-
-        args << status
-      when 2, 4
-        sql += ' AND tas.status = ?
-                 ORDER BY numeric_sort(name), created_date'
-
-        args << status
-      when 3
-        sql += ' AND tas.anime_id IS NULL
-                 ORDER BY numeric_sort(name), created_date'
-      end
+      sql += ' ORDER BY ta.name'
     end
 
     sql += ' LIMIT ? OFFSET ?'
@@ -131,7 +131,7 @@ class AnimeMapper
       args << "%#{keyword}%"
     end
 
-    unless status.nil?
+    unless status == 1
       case status
       when 32
         sql += 'GROUP BY ta.id, ta.name
