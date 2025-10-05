@@ -43,6 +43,11 @@ class ContentIndex
 
     content = @content_controller.get_one_content(id)
 
+    if content.is_a?(String)
+      dialog_message(@window, :error, :db_error, content)
+      return
+    end
+
     @content_title.text = content.name
     @no_data_label.text = I18n.t('content.select_group')
     @selected_group_label.text = I18n.t('content.group_name')
@@ -290,10 +295,10 @@ class ContentIndex
     common = %w[storage media rip ratio]
 
     common.each do |item|
-      result = begin
-        @common_controller.get_common_menu(item)
-      rescue StandardError => e
-        dialog_message(@window, :error, :db_error, e.message)
+      result = @common_controller.get_type_menu(item)
+
+      if result.is_a?(String)
+        dialog_message(@window, :error, :db_error, result)
         next
       end
 
@@ -331,7 +336,7 @@ class ContentIndex
       end
 
       case item
-      when'storage'
+      when 'storage'
         @storage_combo.clear
         @storage_combo.model = combo_model
         @storage_combo.pack_start(text_renderer, true)
@@ -354,10 +359,10 @@ class ContentIndex
   end
 
   def load_anime_data
-    anime = begin
-      @anime_controller.get_anime_list(@group_id, @keyword)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    anime = @anime_controller.get_anime_list(@group_id, @keyword)
+
+    if anime.is_a?(String)
+      dialog_message(@window, :error, :write_error, anime)
       return
     end
 
@@ -367,6 +372,7 @@ class ContentIndex
       row = Gtk::ListBoxRow.new
       row.add(Gtk::Label.new(item.name))
       row.name = item.id.to_s
+      row.halign = Gtk::Align::START
 
       @anime_list.add(row)
     end
@@ -376,10 +382,10 @@ class ContentIndex
   end
 
   def load_one_anime_data
-    anime = begin
-      @anime_controller.get_anime_by_id(@content_id)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    anime = @anime_controller.get_anime_by_id(@content_id)
+
+    if anime.is_a?(String)
+      dialog_message(@window, :error, :db_error, anime)
       return
     end
 
@@ -551,11 +557,11 @@ class ContentIndex
   end
 
   def load_book_data
-    book = begin
-      type = @selected_group_original_combo.active_iter[1]
-      @book_controller.get_book_list(type, @group_id, @keyword)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    type = @selected_group_original_combo.active_iter[1]
+    book = @book_controller.get_book_list(type, @group_id, @keyword)
+
+    if book.is_a?(String)
+      dialog_message(@window, :error, :db_error, book)
       return
     end
 
@@ -565,6 +571,7 @@ class ContentIndex
       row = Gtk::ListBoxRow.new
       row.add(Gtk::Label.new(item.name))
       row.name = item.id.to_s
+      row.halign = Gtk::Align::START
 
       @book_list.add(row)
     end
@@ -574,10 +581,10 @@ class ContentIndex
   end
 
   def load_one_book_data
-    book = begin
-      @book_controller.get_book_by_id(@content_id)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    book = @book_controller.get_book_by_id(@content_id)
+
+    if book.is_a?(String)
+      dialog_message(@window, :error, :db_error, book)
       return
     end
 
@@ -615,10 +622,10 @@ class ContentIndex
         if selected_row
           item = selected_row.name.to_i
 
-          group = begin
-            @group_controller.get_one_group(item)
-          rescue StandardError => e
-            dialog_message(@window, :error, :db_error, e.message)
+          group = @group_controller.get_one_group(item)
+
+          if group.is_a?(String)
+            dialog_message(@window, :error, :db_error, group)
             next
           end
 
@@ -660,7 +667,7 @@ class ContentIndex
     @selected_group_original_combo.clear
 
     original = begin
-      @common_controller.get_type_menu(['original'])
+      @common_controller.get_type_menu('original')
     rescue StandardError => e
       dialog_message(@window, :error, :db_error, e.message)
       return
@@ -691,14 +698,14 @@ class ContentIndex
       content['id'] = @id
       content['name'] = @content_title.text
 
-      success = begin
-                  @content_controller.modify_content(Content.new(content))
-                rescue StandardError => e
-                  dialog_message(@window, :error, :modify_error, e.message)
-                  next
-                end
+      result = @content_controller.modify_content(Content.new(content))
 
-      if success
+      if result.is_a?(String)
+        dialog_message(@window, :error, :modify_error, result)
+        next
+      end
+
+      if result
         dialog_message(@window, :info, :modify_success)
       else
         dialog_message(@window, :warning, :duplicate_data)
@@ -710,10 +717,10 @@ class ContentIndex
       res = con.run
 
       if res == Gtk::ResponseType::YES
-        begin
-          @content_controller.remove_content(@id)
-        rescue StandardError => e
-          dialog_message(@window, :error, :remove_error, e.message)
+        result = @content_controller.remove_content(@id)
+
+        if result.is_a?(String)
+          dialog_message(@window, :error, :remove_error, result)
           next
         end
 
@@ -850,10 +857,10 @@ class ContentIndex
   def load_group_list
     clear_list_box(@group_list)
 
-    group = begin
-      @group_controller.get_selected_group_list(@id)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    group = @group_controller.get_selected_group_list(@id)
+
+    if group.is_a?(String)
+      dialog_message(@window, :error, :db_error, group)
       return
     end
 
@@ -919,18 +926,17 @@ class ContentIndex
 
       return if anime.nil?
 
-      begin
-        last_id = @anime_controller.add_anime(Anime.new(anime))
+      param = {
+        anime: Anime.new(anime),
+        content_type: @content_type,
+        group_id: @group_id,
+        img_file_name: @img_file_name
+      }
 
-        raise if last_id.nil?
+      result = @anime_controller.add_anime(param)
 
-        file = file_upload(@img_file_name, @content_type, last_id)
-
-        @file_controller.add_image_file(Files.new(file)) unless file.nil?
-        @anime_controller.set_mapping_anime(@group_id, last_id)
-
-      rescue StandardError => e
-        dialog_message(@window, :error, :write_error, e.message)
+      if result.is_a?(String)
+        dialog_message(@window, :error, :write_error, result)
         return
       end
 
@@ -945,16 +951,17 @@ class ContentIndex
 
       return if book.nil?
 
-      begin
-        last_id = @book_controller.add_book(Book.new(book))
-        raise if last_id.nil?
+      param = {
+        book: Book.new(book),
+        content_type: @content_type,
+        group_id: @group_id,
+        img_file_name: @img_file_name
+      }
 
-        file = file_upload(@img_file_name, @content_type, last_id)
-        @file_controller.add_image_file(Files.new(file)) unless file.nil?
-        @book_controller.set_mapping_book(@group_id, last_id)
+      result = @book_controller.add_book(param)
 
-      rescue StandardError => e
-        dialog_message(@window, :error, :write_error, e.message)
+      if result.is_a?(String)
+        dialog_message(@window, :error, :write_error, result)
         return
       end
 
@@ -967,41 +974,34 @@ class ContentIndex
   end
 
   def data_edit_btn_clicked
-    info_success = if @content_type == 'tb_anime'
-                     anime = data_validate
+    img = { "img_file_name": @img_file_name,
+            "content_type": @content_type,
+            "content_id": @content_id,
+            "img_del": @img_del }
 
-                     return if anime.nil?
+    result = if @content_type == 'tb_anime'
+               anime = data_validate
 
-                     anime['id'] = @content_id
+               return if anime.nil?
 
-                     begin
-                       @anime_controller.modify_anime(Anime.new(anime))
-                     rescue StandardError => e
-                       dialog_message(@window, :error, :modify_error, e.message)
-                       return
-                     end
-                   elsif @content_type == 'tb_book'
-                     book = data_validate
+               anime['id'] = @content_id
+               @anime_controller.modify_anime(Anime.new(anime), img)
+             elsif @content_type == 'tb_book'
+               book = data_validate
 
-                     return if book.nil?
+               return if book.nil?
 
-                     book['id'] = @content_id
+               book['id'] = @content_id
+               @book_controller.modify_book(Book.new(book), img)
+             end
 
-                     begin
-                       @book_controller.modify_book(Book.new(book))
-                     rescue StandardError => e
-                       dialog_message(@window, :error, :modify_error, e.message)
-                       return
-                     end
-                   end
-
-    img_success = image_modify
-
-    if info_success || img_success
-      dialog_message(@window, :info, :modify_success)
-    else
-      dialog_message(@window, :warning, :duplicate_data)
+    if result.is_a?(String)
+      dialog_message(@window, :error, :modify_error, result)
+      return
     end
+
+    dialog_message(@window, :warning, :duplicate_data) unless result
+    dialog_message(@window, :info, :modify_success) if result
 
     @img_file = nil
     @img_del = 'N'
@@ -1016,16 +1016,19 @@ class ContentIndex
     res = con.run
 
     if res == Gtk::ResponseType::YES
-      begin
-        @anime_controller.remove_anime(@content_id) if @content_type == 'tb_anime'
-        @book_controller.remove_book(@content_id) if @content_type == 'tb_book'
-        file = {}
+      file = {}
 
-        file['refer_tb'] = @content_type
-        file['refer_id'] = @content_id
-        @file_controller.delete_image_file(Files.new(file))
-      rescue StandardError => e
-        dialog_message(@window, :error, :remove_error, e.message)
+      file['refer_tb'] = @content_type
+      file['refer_id'] = @content_id
+
+      result = if @content_type == 'tb_anime'
+                 @anime_controller.remove_anime(@content_id, Files.new(file))
+               elsif @content_type == 'tb_book'
+                 @book_controller.remove_book(@content_id, Files.new(file))
+               end
+
+      if result.is_a?(String)
+        dialog_message(@window, :error, :remove_error, result)
         return
       end
 
@@ -1042,33 +1045,6 @@ class ContentIndex
     end
 
     con.destroy
-  end
-
-  def image_modify
-    begin
-      unless @img_file_name.nil?
-        file = file_upload(@img_file_name, @content_type, @content_id)
-        @file_controller.modify_image_file(Files.new(file))
-
-        return true
-      end
-
-      if @img_del == 'Y'
-        file = {}
-
-        file['refer_tb'] = @content_type
-        file['refer_id'] = @content_id
-        @file_controller.delete_image_file(Files.new(file))
-
-        return true
-      end
-
-      false
-
-    rescue StandardError => e
-      dialog_message(@window, :error, :modify_error, e.message)
-      false
-    end
   end
 
   def data_list_btn_clicked

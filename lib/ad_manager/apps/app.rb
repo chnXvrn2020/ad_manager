@@ -3,6 +3,7 @@ require 'gtk3'
 require 'i18n'
 
 require 'ffi'
+require 'fileutils'
 
 module Win32
   extend FFI::Library
@@ -21,6 +22,10 @@ Dir.glob(File.join(__dir__, 'models/*.rb')).sort.each do |f|
 end
 
 Dir.glob(File.join(__dir__, 'mapper/sql/*.rb')).sort.each do |f|
+  require_relative f
+end
+
+Dir.glob(File.join(__dir__, 'services/*.rb')).sort.each do |f|
   require_relative f
 end
 

@@ -162,7 +162,7 @@ class RecommendDialog < Gtk::Dialog
     combo_model = Gtk::ListStore.new(String, Integer)
 
     original = begin
-                 @common_controller.get_type_menu(['original'])
+                 @common_controller.get_type_menu('original')
                rescue StandardError => e
                  dialog_message(@window, :error, :db_error, e.message)
                  return
@@ -204,85 +204,48 @@ class RecommendDialog < Gtk::Dialog
 
   def recommend_anime
     set_visible(false, true, false)
+    @data = [{}]
 
-    begin
-      content = @content_controller.recommend_anime
+    result = @anime_controller.recommend_anime
 
-      while true
-        rand_content = content.sample
-        flag = false
-
-        group_list = @group_controller.recommend_anime_by_content_id(rand_content.id)
-
-        group_list.each do |group|
-          status = @anime_controller.get_current_status(group.id)
-
-          if status_loop(status) == 0
-            @content_id = rand_content.id
-            @anime_content_data.text = rand_content.name
-            @group_id = group.id
-            @anime_group_data.text = group.name
-
-            flag = true
-            break
-          end
-        end
-
-        break if flag
-      end
-
-      recommend = @anime_controller.recommend_anime(@group_id)
-
-      @detail_button.set_sensitive(true)
-      @id = recommend.id
-      @anime_data.text = recommend.name
-
-      @data[0]['content_id'] = @content_id
-      @data[0]['group_id'] = @group_id
-      @data[0]['id'] = @id
-      @data[0]['type_id'] = @type_id
-
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    if result.is_a?(String)
+      dialog_message(@window, :error, :db_error, result)
       return
     end
+
+    @content_id = result['content_id']
+    @anime_content_data.text = result['anime_content_data']
+    @group_id = result['group_id']
+    @anime_group_data.text = result['anime_group_data']
+
+    @detail_button.set_sensitive(true)
+    @id = result['recommend_id']
+    @anime_data.text = result['recommend_name']
+
+    @data[0]['content_id'] = @content_id
+    @data[0]['group_id'] = @group_id
+    @data[0]['id'] = @id
+    @data[0]['type_id'] = @type_id
   end
 
   def recommend_book
     set_visible(false, false, true)
+    @data = [{}]
 
-    begin
-      book = @group_controller.recommend_book(@type_id)
+    result = @book_controller.recommend_book(@type_id)
 
-      while true
-        rand_book = book.sample
-        flag = false
-        status_count = @book_controller.get_current_status(rand_book.id)
-
-        if status_count <= 0
-          temp_content = @content_controller.find_content_on_map(rand_book.id)
-
-          content = @content_controller.get_one_content(temp_content[0]['content_id'])
-
-          @content_id = content.id
-          @book_content_data.text = content.name
-          @group_id = rand_book.id
-          @book_group_data.text = rand_book.name
-
-          flag = true
-        end
-
-        break if flag
-
-      end
-
-      @detail_button.set_sensitive(true)
-      @data = @content_id
-
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    if result.is_a?(String)
+      dialog_message(@window, :error, :db_error, result)
       return
     end
+
+    @content_id = result['content_id']
+    @book_content_data.text = result['book_content_data']
+    @group_id = result['group_id']
+    @book_group_data.text = result['book_group_data']
+
+    @detail_button.set_sensitive(true)
+    @data = @content_id
 
   end
 

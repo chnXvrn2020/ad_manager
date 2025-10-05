@@ -142,10 +142,10 @@ class CompanySelector < Gtk::Dialog
   def load_company_data
     clear_list_box(@company_list)
 
-    company = begin
-      @controller.get_all_company_list(@type, @ides, @keyword)
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    company = @controller.get_all_company_list(@type, @ides, @keyword)
+
+    if company.is_a?(String)
+      dialog_message(self, :error, :db_error, company)
       return
     end
 

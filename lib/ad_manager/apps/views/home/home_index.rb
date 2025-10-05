@@ -9,6 +9,7 @@ require_relative 'home_search'
 require_relative '../recommend/recommend_dialog'
 
 class HomeIndex
+  attr_accessor :type_combo
   attr_reader :frame
 
   def initialize(window, stack)
@@ -36,6 +37,7 @@ class HomeIndex
   def initialize_ui(_id = nil)
     @keyword = nil
     @current_page = 1
+
     load_list_data(@type_combo.active_iter[1], @status_combo.active_iter[1], @book_option_combo.active_iter[1])
   end
 
@@ -181,7 +183,7 @@ class HomeIndex
     end
 
     @search_btn.signal_connect('clicked') do
-      home_search = HomeSearch.new(@window, I18n.t('menu.search'))
+      home_search = HomeSearch.new(@window, I18n.t('menu.search'), @keyword)
 
       home_search.signal_connect('response') do |widget, response|
         if response == Gtk::ResponseType::OK
@@ -222,10 +224,10 @@ class HomeIndex
     @book_option_id = book_option_id
 
     # Commonのデータの読み込み
-    begin
-      common = @common_controller.get_one_common(type_id)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    common = @common_controller.get_one_common(type_id)
+
+    if common.is_a?(String)
+      dialog_message(@window, :error, :db_error, common)
       return
     end
 
@@ -247,33 +249,36 @@ class HomeIndex
 
   def db_data(common)
 
-    # Commonを素にリストに出力するデータを読み込む
-    begin
-      case common.name
-      when I18n.t('home.content')
-        @content_controller.get_content_list(@current_page, @keyword, @status_id)
-      when I18n.t('home.group')
-        @group_controller.get_group_list_with_count(@current_page, @keyword, @status_id)
-      when I18n.t('home.anime')
-        @anime_controller.get_anime_list_with_count(@current_page, @keyword, @status_id)
-      when I18n.t('home.manga'), I18n.t('home.novel')
-        return [] if @status_id == 4 || (@status_id == 2 && @book_option_id == 33)
-        return @book_controller.get_book_list_with_count(common.id, @current_page, @keyword, @status_id) if @book_option_id == 33
+    result = case common.name
+             when I18n.t('home.content')
+               @content_controller.get_content_list(@current_page, @keyword, @status_id)
+             when I18n.t('home.group')
+               @group_controller.get_group_list_with_count(@current_page, @keyword, @status_id)
+             when I18n.t('home.anime')
+               @anime_controller.get_anime_list_with_count(@current_page, @keyword, @status_id)
+             when I18n.t('home.manga'), I18n.t('home.novel')
+               return [] if @status_id == 4 || (@status_id == 2 && @book_option_id == 33)
 
-        if @book_option_id == 34
-          @type_id = 6
-          return @group_controller.get_book_group_list_with_count(common.id, @current_page, @keyword, @status_id)
-        end
-      else
-        remove_pagination_num
-        clear_list_box(@list_widget)
-        []
-      end
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+               if @book_option_id == 33
+                 return @book_controller.get_book_list_with_count(common.id, @current_page, @keyword, @status_id)
+               end
 
-      []
+               if @book_option_id == 34
+                 @type_id = 6
+                 @group_controller.get_book_group_list_with_count(common.id, @current_page, @keyword, @status_id)
+               end
+             else
+               remove_pagination_num
+               clear_list_box(@list_widget)
+               []
+             end
+
+    if result.is_a?(String)
+      dialog_message(@window, :error, :db_error, result)
+      return
     end
+
+    result
   end
 
   def show_list(data)
@@ -306,36 +311,29 @@ class HomeIndex
     book_option_renderer = Gtk::CellRendererText.new
 
     # コンボボックスのデータ読み込み
-    begin
-      status_list = @common_controller.get_common_menu('h_m_1')
-      type_list = @common_controller.get_type_menu(%w[h_m_2 original])
-      book_option_list = @common_controller.get_common_menu('h_m_3')
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
 
-      return
-    end
+    param = ['h_m_1', %w[h_m_2 original], 'h_m_3']
 
     status_model = Gtk::ListStore.new(String, Integer)
     type_model = Gtk::ListStore.new(String, Integer)
     book_option_model = Gtk::ListStore.new(String, Integer)
 
-    status_list.each do |status|
-      iter = status_model.append
-      iter[0] = status.name
-      iter[1] = status.id
-    end
+    param.each_with_index do |p, i|
+      list = @common_controller.get_type_menu(p)
 
-    type_list.each do |type|
-      iter = type_model.append
-      iter[0] = type.name
-      iter[1] = type.id
-    end
+      if list.is_a?(String)
+        dialog_message(@window, :error, :db_error, list)
+        return
+      end
 
-    book_option_list.each do |book_option|
-      iter = book_option_model.append
-      iter[0] = book_option.name
-      iter[1] = book_option.id
+      list.each do |item|
+        iter = status_model.append if i.zero?
+        iter = type_model.append if i == 1
+        iter = book_option_model.append if i == 2
+
+        iter[0] = item.name
+        iter[1] = item.id
+      end
     end
 
     @status_combo.model = status_model
@@ -378,6 +376,11 @@ class HomeIndex
         @current_page = page_num
 
         common = @common_controller.get_one_common(@type_id)
+
+        if common.is_a?(String)
+          dialog_message(@window, :error, :db_error, common)
+          return
+        end
 
         data = db_data(common)
         model = data['model']
@@ -468,27 +471,34 @@ class HomeIndex
   end
 
   def type_selector(id)
-    begin
-      common = @common_controller.get_one_common(@type_id)
+    common = @common_controller.get_one_common(@type_id)
 
-      case common.name
-      when I18n.t('home.content')
-        nil
-      when I18n.t('home.group')
-        @content_controller.find_content_on_map(id)
-      else
-        group = @group_controller.find_group_on_map(common, id)
-        content = @content_controller.find_content_on_map(group[0]['group_id'])
-
-        group[0]['content_id'] = content[0]['content_id']
-        group[0]['type_id'] = @type_id
-
-        group
-      end
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
-      nil
+    if common.is_a?(String)
+      dialog_message(@window, :error, :db_error, common)
+      return nil
     end
+
+    result = case common.name
+             when I18n.t('home.content')
+               nil
+             when I18n.t('home.group')
+               @content_controller.find_content_on_map(id)
+             else
+               group = @group_controller.find_group_on_map(common, id)
+               content = @content_controller.find_content_on_map(group[0]['group_id'])
+
+               group[0]['content_id'] = content[0]['content_id']
+               group[0]['type_id'] = @type_id
+
+               group
+             end
+
+    if result.is_a?(String)
+      dialog_message(@window, :error, :db_error, result)
+      return nil
+    end
+
+    result
   end
 
   def view_content(param)

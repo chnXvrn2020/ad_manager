@@ -162,7 +162,7 @@ class GroupMapper
 
   def select_all_count(db, keyword = nil, status = nil)
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM (
       SELECT DISTINCT tg.id, tg.name
       FROM tb_group tg
@@ -221,7 +221,7 @@ class GroupMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
   end
 
   def select_book_group_list(db, type, page, keyword, status)
@@ -276,7 +276,7 @@ class GroupMapper
   def select_book_group_list_count(db, type, keyword, status)
 
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM (
       SELECT DISTINCT tg.id, tg.name
       FROM tb_group tg
@@ -317,7 +317,7 @@ class GroupMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
   end
 
   def insert_group(db, group)

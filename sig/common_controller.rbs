@@ -1,15 +1,15 @@
 class CommonController
-  def add_one_common: -> bool
+  def add_one_common: -> (bool | String)
 
-  def get_common_list: -> hash[Common, Page]
+  def get_common_list: -> (hash[array[Common], Page] | nil | String)
 
   def get_common_menu: -> array[Common]
 
-  def get_one_common: -> Common
+  def get_one_common: -> (Common | nil | String)
 
-  def get_type_menu: -> array[Common]
+  def get_type_menu: -> (array[Common] | nil | String)
 
-  def modify_one_common: -> bool
+  def modify_one_common: -> (bool | String)
 
-  def remove_one_common: -> nil
+  def remove_one_common: -> void
 end

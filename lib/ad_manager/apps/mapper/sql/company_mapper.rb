@@ -38,7 +38,7 @@ class CompanyMapper
 
   def select_count_by_type(db, type, keyword = nil)
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM tb_company
       WHERE type = ?
       AND current_yn = 'Y'
@@ -61,7 +61,7 @@ class CompanyMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
 
   end
 
@@ -107,23 +107,6 @@ class CompanyMapper
     db.execute(sql, args)
   end
 
-  def select_selected_group_list_by_type(db, type, ides)
-    sql = <<~SQL
-      SELECT *
-      FROM tb_company
-      WHERE type = ?
-      AND use_yn = 'Y'
-    SQL
-
-    placeholder = ides.map { '?' }.join(',')
-    sql += " AND id IN (#{placeholder})"
-
-    args = [type, ides]
-
-    db.execute(sql, args)
-
-  end
-
   def select_by_id(db, id)
     sql = <<~SQL
       SELECT *
@@ -163,13 +146,13 @@ class CompanyMapper
 
     parent_id = db.execute(sql, id)
 
-    parent_id[0][0]
+    parent_id[0]['parent_id']
 
   end
 
   def select_group_count_by_id(db, id)
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM tb_company
       WHERE (id = ? OR parent_id = ?)
       AND use_yn = 'Y'
@@ -179,7 +162,7 @@ class CompanyMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
   end
 
   def insert_company(db, company)

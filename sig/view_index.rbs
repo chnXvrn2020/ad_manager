@@ -1,0 +1,35 @@
+class ViewIndex
+  @anime_controller: AnimeController
+  @anime_stop: bool
+  @book_controller: BookController
+  @book_count: int
+  @common_controller: CommonController
+  @company_controller: CompanyController
+  @content_controller: ContentController
+  @content_id: int
+  @file_controller: FileController
+  @frame: Gtk::Frame
+  @group_controller: GroupController
+  @group_id: int
+  @group_keyword: string|nil
+  @id: int
+  @img: Files|nil
+  @img_path: string
+  @keyword: string|nil
+  @stack: Gtk::Stack
+  @type: string|nil
+  @type_id: int
+  @window: Gtk::Window
+
+  attr_reader frame: Gtk::Frame
+
+  def initialize: -> void
+
+  def initialize_ui: -> void
+
+  def initialize_window: -> void
+
+  private
+
+  def set_ui: -> void
+end

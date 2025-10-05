@@ -1,0 +1,23 @@
+class CompanyService
+  def add_child_company: -> bool
+
+  def add_one_company: -> bool
+
+  def change_current_yn: -> void
+
+  def get_all_company_list: -> array[Company]
+
+  def get_company_group: -> array[Company]
+
+  def get_company_info: -> hash[Company, int]
+
+  def get_company_list: -> hash[array[Company], Page]
+
+  def get_one_company: -> { }
+
+  def modify_one_company: -> bool
+
+  def remove_company_group: -> void
+
+  def remove_one_company: -> void
+end

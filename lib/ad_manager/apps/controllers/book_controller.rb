@@ -4,8 +4,14 @@ class BookController
 
   def get_book_list(type, group_id, keyword = nil)
     db = connect_to_db
-    data = BookMapper.instance.select_book_list(db, type, group_id, keyword)
-    db.close
+
+    data = begin
+             BookService.instance.get_book_list(db, type, group_id, keyword)
+    rescue StandardError => e
+             return e.message
+    ensure
+             db.close
+    end
 
     book = []
 
@@ -14,21 +20,30 @@ class BookController
     end
 
     book
-
   end
 
   def get_book_count_by_group_id(type, group_id)
     db = connect_to_db
-    count = BookMapper.instance.select_book_count_by_group_id(db, type, group_id)
-    db.close
 
-    count
+    begin
+      BookService.instance.get_book_count_by_group_id(db, type, group_id)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
   end
 
   def get_unselected_book_list(type, group_id, keyword = nil)
     db = connect_to_db
-    data = BookMapper.instance.select_unselected_book_list(db, type, group_id, keyword)
-    db.close
+
+    data = begin
+             BookService.instance.get_unselected_book_list(db, type, group_id, keyword)
+    rescue StandardError => e
+             return e.message
+    ensure
+             db.close
+    end
 
     book = []
 
@@ -41,129 +56,185 @@ class BookController
 
   def get_book_by_id(id)
     db = connect_to_db
-    data = BookMapper.instance.select_book_by_id(db, id)
-    db.close
+    data = begin
+             BookService.instance.get_book_by_id(db, id)
+    rescue StandardError => e
+             return e.message
+    ensure
+             db.close
+    end
 
     Book.new(data[0])
   end
 
-  def get_book_list_with_count(type, current_page = 1, keyword = nil, status = nil)
+  def get_book_info_by_id(type, id)
     db = connect_to_db
-    count = BookMapper.instance.select_all_count(db, type, keyword, status)
-    page = Page.new(count, current_page)
-    book = BookMapper.instance.select_all(db, type, page, keyword, status)
-    db.close
 
-    model = []
+    begin
+      book_info = BookService.instance.get_book_info_by_id(db, id)
+      book_file = FileService.instance.get_image_file(db, type, id)
 
-    book.each do |hash|
-      model << Book.new(hash)
+      book_info.merge!("file" => book_file)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
     end
 
-    { 'model' => model, 'page' => page }
+    book_info
   end
 
-  def get_book_status(id)
+  def get_book_list_with_count(type, current_page = 1, keyword = nil, status = nil)
     db = connect_to_db
-    data = BookMapper.instance.select_book_status(db, id)
-    db.close
+
+    begin
+      BookService.instance.get_book_list_with_count(db, type, keyword, status, current_page)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
+  end
+
+  def get_completed_book_count_by_group_id(type, group_id)
+    db = connect_to_db
+
+    begin
+      BookService.instance.get_completed_book_count_by_group_id(db, type, group_id)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
+  end
+
+  def add_book(param)
+    db = connect_to_db
+
+    begin
+      db.transaction
+      last_id = BookMapper.instance.insert_book(db, param[:book])
+      raise if last_id.nil?
+
+      file = file_upload(param[:img_file_name], param[:content_type], last_id)
+
+      FileService.instance.add_image_file(db, Files.new(file)) unless file.nil?
+      BookService.instance.set_mapping_book(db, param[:group_id], last_id)
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      File.delete("#{img_path}#{file["file_name"]}") unless file.nil?
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
+  end
+
+  def modify_book(book)
+    db = connect_to_db
+
+    begin
+      db.transaction
+
+      result = BookService.instance.modify_book(db, book)
+      return false unless result
+
+      if img['img_del'] == 'Y'
+        file = {}
+
+        file['refer_tb'] = img['content_type']
+        file['refer_id'] = img['content_id']
+
+        FileService.instance.delete_image_file(db, Files.new(file))
+      else
+        FileService.instance.modify_image_file(db, img)
+      end
+
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
+  end
+
+  def remove_book(id, file)
+    db = connect_to_db
+
+    begin
+      db.transaction
+      BookService.instance.remove_book(db, id)
+      FileService.instance.delete_image_file(db, file)
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
+  end
+
+  def set_mapping_book(group_id, book_id)
+    db = connect_to_db
+
+    begin
+      BookService.instance.set_mapping_book(db, group_id, book_id)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
+  end
+
+  def remove_mapping_book(group_id, book_id)
+    db = connect_to_db
+
+    begin
+      BookService.instance.remove_mapping_book(db, group_id, book_id)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
+  end
+
+  def complete_read_book(id, completion_date = nil)
+    db = connect_to_db
+
+    data = begin
+             BookService.instance.complete_read_book(db, id, completion_date)
+    rescue StandardError => e
+             return e.message
+    ensure
+             db.close
+    end
 
     return nil if data.empty?
 
     Book.new(data[0])
   end
 
-  def get_completed_book_count_by_group_id(type, group_id)
-    db = connect_to_db
-    count = BookMapper.instance.select_completed_book_count_by_group_id(db, type, group_id)
-    db.close
-
-    count
-  end
-
-  def add_book(book)
+  def recommend_book(type_id)
     db = connect_to_db
 
-    if BookMapper.instance.check_duplicate_name(db, book)
+    begin
+      BookService.instance.recommend_book(db, type_id)
+    rescue StandardError => e
+      e.message
+    ensure
       db.close
-      return nil
     end
-
-    last_id = BookMapper.instance.insert_book(db, book)
-
-    db.close
-
-    last_id
-  end
-
-  def modify_book(book)
-    db = connect_to_db
-
-    if BookMapper.instance.check_duplicate_name(db, book)
-      db.close
-      return false
-    end
-
-    BookMapper.instance.update_book(db, book)
-    db.close
-
-    true
-  end
-
-  def remove_book(id)
-    db = connect_to_db
-    BookMapper.instance.delete_book(db, id)
-    db.close
-  end
-
-  def set_mapping_book(group_id, book_id)
-    from_tb = 'tb_group'
-    refer_tb = 'tb_book'
-
-    map = Map.new({'from_tb' => from_tb,
-                   'from_id' => group_id,
-                   'refer_tb' => refer_tb,
-                   'refer_id' => book_id})
-
-    db = connect_to_db
-    MapMapper.instance.insert_mapping(db, map)
-    db.close
-  end
-
-  def set_remove_book(group_id, book_id)
-    from_tb = 'tb_group'
-    refer_tb = 'tb_book'
-
-    map = Map.new({'from_tb' => from_tb,
-                   'from_id' => group_id,
-                   'refer_tb' => refer_tb,
-                   'refer_id' => book_id})
-
-    db = connect_to_db
-    MapMapper.instance.delete_one_mapping(db, map)
-    db.close
-  end
-
-  def complete_read_book(id, completion_date = nil)
-    db = connect_to_db
-    BookMapper.instance.insert_book_complete(db, id, completion_date)
-    db.close
-  end
-
-  def get_current_status(group_id)
-    db = connect_to_db
-    count = BookMapper.instance.select_book_status_count_by_group_id(db, group_id)
-    db.close
-
-    count
-  end
-
-  def get_all_book_count(group_id)
-    db = connect_to_db
-    count = BookMapper.instance.select_all_book_count_by_group_id(db, group_id)
-    db.close
-
-    count
   end
 
 end

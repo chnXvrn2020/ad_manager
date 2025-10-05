@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+def img_path
+  './files/akiba_images/'
+end
+
 def current_datetime
   Time.now.strftime('%Y-%m-%d %H:%M:%S')
 end
@@ -286,23 +290,18 @@ def status_loop(rows)
   end
 end
 
-def group_status(id)
+def group_status(group_status_info)
 
-  begin
-    anime_status = @group_controller.get_group_anime_status(id)
-    book_status = @group_controller.get_group_book_status(id)
-    book_count = @book_controller.get_all_book_count(id)
-  rescue StandardError => e
-    dialog_message(@window, :error, :db_error, e.message)
-    return
-  end
+  anime_status = group_status_info['anime']
+  book_status = group_status_info['book']
+  book_count = group_status_info['book_count']
 
   status = "　（#{I18n.t('view.unwatched')}）"
 
   anime_status.each_with_index do |anime, i|
-    break if anime.status == nil and i <= 0
+    break if anime.status.nil? && (i <= 0)
 
-    if anime.status == 2 or (anime.status == nil and i > 0) or book_count > 0
+    if (anime.status == 2) || (anime.status.nil? && (i > 0)) || (book_count > 0)
       status = "　（#{I18n.t('view.watching')}）"
       break
     end
@@ -312,16 +311,23 @@ def group_status(id)
       break
     end
 
-    status = "　（#{I18n.t('view.completed')}）" if anime.status == 32 and anime_status.length == i + 1
+    status = "　（#{I18n.t('view.completed')}）" if (anime.status == 32) && (anime_status.length == i + 1)
   end
 
   book_status.each_with_index do |book, i|
-    break if book.status == nil and i <= 0
+    break if book.status.nil? && (i <= 0)
 
     status = "　（#{I18n.t('view.watching')}）" if book.status == 32
-    status = "　（#{I18n.t('view.completed')}）" if book.status == 32 and book_status.length == i + 1
+    status = "　（#{I18n.t('view.completed')}）" if (book.status == 32) && (book_status.length == i + 1)
   end
 
   status
 
+end
+
+def create_map(param)
+  Map.new({'from_tb' => param[:from_tb],
+           'from_id' => param[:from_id],
+           'refer_tb' => param[:refer_tb],
+           'refer_id' => param[:refer_id]})
 end

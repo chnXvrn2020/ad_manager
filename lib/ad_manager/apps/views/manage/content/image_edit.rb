@@ -127,10 +127,11 @@ class ImageEdit < Gtk::Dialog
   end
 
   def get_db_image
-    file = begin
-      @controller.get_image_info(@type, @id)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+
+    file = @controller.get_image_info(@type, @id)
+
+    if file.is_a?(String)
+      dialog_message(@window, :error, :db_error, file)
       nil
     end
 
@@ -148,7 +149,7 @@ class ImageEdit < Gtk::Dialog
                                              :buttons => [[Gtk::Stock::OPEN, Gtk::ResponseType::ACCEPT],
                                                           [Gtk::Stock::CANCEL, Gtk::ResponseType::CANCEL]])
 
-    file_dialog.set_default_size(200, 200)
+    file_dialog.set_default_size(150, 150)
     file_dialog.set_position(Gtk::WindowPosition::CENTER)
     file_dialog.resizable = false
 

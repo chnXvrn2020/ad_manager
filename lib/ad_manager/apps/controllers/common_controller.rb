@@ -2,25 +2,16 @@
 
 class CommonController
 
-  def get_common_menu(type)
-
-    db = connect_to_db
-    common = CommonMapper.instance.select_by_type(db, type)
-    db.close
-
-    model = []
-
-    common.each do |hash|
-      model << Common.new(hash)
-    end
-
-    model
-  end
-
   def get_type_menu(types)
     db = connect_to_db
-    common = CommonMapper.instance.select_by_types(db, types)
-    db.close
+
+    common = begin
+      CommonService.instance.get_type_menu(db, types)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
 
     model = []
 
@@ -37,26 +28,28 @@ class CommonController
     return if type.nil?
 
     db = connect_to_db
-    count = CommonMapper.instance.select_count_by_type(db, type, keyword)
-    page = Page.new(count, current_page)
-    common = CommonMapper.instance.select_by_type(db, type, page, keyword)
-    db.close
 
-    model = []
-
-    common.each do |hash|
-      model << Common.new(hash)
+    begin
+      CommonService.instance.get_common_list(db, type, current_page, keyword)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
     end
-
-    { 'model' => model, 'page' => page }
   end
 
   def get_one_common(id)
     db = connect_to_db
-    data = CommonMapper.instance.select_by_id(db, id)
-    db.close
 
-    return if data.empty?
+    data = begin
+      CommonService.instance.get_one_common(db, id)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    return nil if data.empty?
 
     Common.new(data[0])
   end
@@ -64,35 +57,37 @@ class CommonController
   def add_one_common(common)
     db = connect_to_db
 
-    if CommonMapper.instance.check_duplicate_name(db, common)
+    begin
+      CommonService.instance.get_one_common(db, common)
+    rescue StandardError => e
+      e.message
+    ensure
       db.close
-      return false
     end
-
-    CommonMapper.instance.insert_common(db, common)
-    db.close
-
-    true
   end
 
   def modify_one_common(common)
     db = connect_to_db
 
-    if CommonMapper.instance.check_duplicate_name(db, common)
+    begin
+      CommonService.instance.modify_one_common(db, common)
+    rescue StandardError => e
+      e.message
+    ensure
       db.close
-      return false
     end
-
-    CommonMapper.instance.update_by_id(db, common)
-    db.close
-
-    true
   end
 
   def remove_one_common(id)
     db = connect_to_db
-    CommonMapper.instance.delete_by_id(db, id)
-    db.close
+
+    begin
+      CommonService.instance.remove_one_common(db, id)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
   end
 
 end

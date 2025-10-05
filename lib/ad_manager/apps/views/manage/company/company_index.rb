@@ -94,17 +94,17 @@ class CompanyIndex < Gtk::Dialog
       res = con.run
 
       if res == Gtk::ResponseType::YES
-        begin
-          @controller.remove_company_group(@company_id)
+        result = @controller.remove_company_group(@company_id)
 
-          dialog_message(self, :info, :remove_success)
-
-          response(Gtk::ResponseType::OK)
-          destroy
-        rescue StandardError => e
-          dialog_message(self, :error, :remove_error, e.message)
+        if result.is_a?(String)
+          dialog_message(self, :error, :remove_error, result)
           next
         end
+
+        dialog_message(self, :info, :remove_success)
+
+        response(Gtk::ResponseType::OK)
+        destroy
       end
 
       con.destroy

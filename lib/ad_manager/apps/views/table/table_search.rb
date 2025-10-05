@@ -82,7 +82,7 @@ class TableSearch < Gtk::Dialog
     combo_model = Gtk::ListStore.new(String, Integer)
 
     original = begin
-                 @common_controller.get_type_menu(['original'])
+                 @common_controller.get_type_menu('original')
                rescue StandardError => e
                  dialog_message(@window, :error, :db_error, e.message)
                  return

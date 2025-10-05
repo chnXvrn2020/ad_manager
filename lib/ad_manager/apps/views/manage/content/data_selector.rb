@@ -134,14 +134,14 @@ class DataSelector < Gtk::Dialog
   def load_data
     clear_list_box(@data_list)
 
-    data = begin
-      if @common.name == I18n.t('original.anime')
-        @anime_controller.get_unselected_anime_list(@id, @keyword)
-      else
-        @book_controller.get_unselected_book_list(@original, @id, @keyword)
-      end
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    data = if @common.name == I18n.t('original.anime')
+             @anime_controller.get_unselected_anime_list(@id, @keyword)
+           else
+             @book_controller.get_unselected_book_list(@original, @id, @keyword)
+           end
+
+    if data.is_a?(String)
+      dialog_message(self, :error, :db_error, data)
       return
     end
 
@@ -161,14 +161,14 @@ class DataSelector < Gtk::Dialog
   def load_selected_data
     clear_list_box(@selected_list)
 
-    data = begin
-      if @common.name == I18n.t('original.anime')
-        @anime_controller.get_anime_list(@id)
-      else
-        @book_controller.get_book_list(@original, @id)
-      end
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    data = if @common.name == I18n.t('original.anime')
+             @anime_controller.get_anime_list(@id)
+           else
+             @book_controller.get_book_list(@original, @id)
+           end
+
+    if data.is_a?(String)
+      dialog_message(self, :error, :db_error, data)
       return
     end
 
@@ -186,14 +186,14 @@ class DataSelector < Gtk::Dialog
   end
 
   def add_data(widget, item, selected_row)
-    begin
-      if @common.name == I18n.t('original.anime')
-        @anime_controller.set_mapping_anime(@id, item)
-      else
-        @book_controller.set_mapping_book(@id, item)
-      end
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    result = if @common.name == I18n.t('original.anime')
+               @anime_controller.set_mapping_anime(@id, item)
+             else
+               @book_controller.set_mapping_book(@id, item)
+             end
+
+    if result.is_a?(String)
+      dialog_message(self, :error, :db_error, result)
       return
     end
 
@@ -209,14 +209,14 @@ class DataSelector < Gtk::Dialog
   end
 
   def remove_selected_data(widget, item, selected_row)
-    begin
-      if @common.name == I18n.t('original.anime')
-        @anime_controller.remove_mapping_anime(@id, item)
-      else
-        @book_controller.remove_mapping_book(@id, item)
-      end
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    result = if @common.name == I18n.t('original.anime')
+               @anime_controller.remove_mapping_anime(@id, item)
+             else
+               @book_controller.remove_mapping_book(@id, item)
+             end
+
+    if result.is_a?(String)
+      dialog_message(self, :error, :db_error, result)
       return
     end
 

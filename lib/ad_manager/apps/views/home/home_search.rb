@@ -6,7 +6,7 @@ class HomeSearch < Gtk::Dialog
 
   attr_reader :keyword
 
-  def initialize(parent, menu)
+  def initialize(parent, menu, pre_keyword = nil)
     super(title: menu, parent: parent,
           flags: %i[modal destroy_with_parent])
     set_size_request(700, 200)
@@ -16,6 +16,7 @@ class HomeSearch < Gtk::Dialog
     self.resizable = false
 
     @menu = menu
+    @keyword = pre_keyword
 
     set_ui
     set_signal_connect
@@ -33,6 +34,7 @@ class HomeSearch < Gtk::Dialog
     @entry = Gtk::Entry.new
     @entry.set_size_request(650, 35)
     @entry.grab_focus
+    @entry.text = @keyword || ''
     h_box.pack_start(@entry, expand: true)
 
     btn_box = Gtk::Box.new(:horizontal)
@@ -51,13 +53,6 @@ class HomeSearch < Gtk::Dialog
   def set_signal_connect
 
     @search_button.signal_connect('clicked') do
-      if @entry.text.to_s.strip.empty?
-        dialog_message(self, :warning, :empty_entry)
-        @entry.grab_focus
-
-        next
-      end
-
       @keyword = @entry.text.to_s.strip
 
       response(Gtk::ResponseType::OK)

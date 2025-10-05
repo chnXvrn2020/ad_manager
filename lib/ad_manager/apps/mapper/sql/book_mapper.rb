@@ -105,18 +105,18 @@ class BookMapper
       args << "%#{keyword}%"
     end
 
-    case status
-    when 32
-      sql += ' GROUP BY tb.id, tb.name
+    sql += case status
+           when 32
+             ' GROUP BY tb.id, tb.name
                HAVING COUNT(tb.id) > 0 AND COUNT(tb.id) <= (SELECT COUNT(tbs.id))
                ORDER BY tbs.completion_date'
-    when 3
-      sql += ' GROUP BY tb.id, tb.name
+           when 3
+             ' GROUP BY tb.id, tb.name
                HAVING COUNT(tb.id) > (SELECT COUNT(tbs.id))
                ORDER BY numeric_sort(tb.name)'
-    else
-      sql += ' ORDER BY numeric_sort(name)'
-    end
+           else
+             ' ORDER BY numeric_sort(name)'
+           end
 
     sql += ' LIMIT ? OFFSET ?'
 
@@ -128,7 +128,7 @@ class BookMapper
 
   def select_all_count(db, type, keyword = nil, status = nil)
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM (
       SELECT tb.id, tb.name
       FROM tb_book tb
@@ -159,7 +159,7 @@ class BookMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
   end
 
   def select_book_status(db, id)
@@ -321,7 +321,7 @@ class BookMapper
 
   def select_book_status_count_by_group_id(db, group_id)
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM tb_book tb
       LEFT JOIN tb_map tm ON tm.from_tb = 'tb_group' AND tm.refer_id = tb.id AND tm.refer_tb = 'tb_book'
       LEFT JOIN tb_group tg ON tg.id = tm.from_id
@@ -334,13 +334,13 @@ class BookMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
   end
 
   def select_all_book_count_by_group_id(db, group_id)
 
     sql = <<~SQL
-      SELECT count(*)
+      SELECT count(*) AS count
       FROM tb_book tb
                LEFT JOIN tb_map g ON g.refer_tb = 'tb_book' AND g.refer_id = tb.id
       WHERE tb.use_yn = 'Y'
@@ -350,7 +350,7 @@ class BookMapper
 
     args = [group_id]
 
-    db.execute(sql, args).first[0]
+    db.execute(sql, args).first['count']
 
   end
 end

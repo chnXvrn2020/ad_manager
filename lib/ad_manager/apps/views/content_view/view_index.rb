@@ -225,7 +225,7 @@ class ViewIndex
     combo_model = Gtk::ListStore.new(String, Integer)
 
     original = begin
-      @common_controller.get_type_menu(['original'])
+      @common_controller.get_type_menu('original')
     rescue StandardError => e
       dialog_message(@window, :error, :db_error, e.message)
       return
@@ -407,21 +407,23 @@ class ViewIndex
       res = con.run
 
       if res == Gtk::ResponseType::YES
-        begin
-          @anime_controller.start_watching_anime(@id)
-          status = @anime_controller.get_anime_status(@id)
 
-          @anime_current_entry.text = status.current_episode.to_s
+        status = @anime_controller.start_watching_anime(@id)
 
-          @status_label.text = status.status
-
-          anime_status_btn(status.status, status)
-          load_group_list
-          load_anime_list
-        rescue StandardError => e
-          dialog_message(@window, :error, :modify_error, e.message)
+        if status.is_a?(String)
+          dialog_message(@window, :error, :modify_error, status)
           next
         end
+
+        next if status.nil?
+
+        @anime_current_entry.text = status.current_episode.to_s
+        @status_label.text = status.status
+
+        anime_status_btn(status.status, status)
+        load_group_list
+        load_anime_list
+
       end
 
       con.destroy
@@ -439,36 +441,32 @@ class ViewIndex
       res = con.run
 
       if res == Gtk::ResponseType::YES
-        begin
-          s = 4 if type == :anime_stop
-          s = 2 if type == :anime_restart
+        status = @anime_controller.modify_watching_anime(type, @id)
 
-          @anime_controller.modify_watching_anime(s, @id)
-          status = @anime_controller.get_anime_status(@id)
-
-          @status_label.text = status.status
-          anime_status_btn(status.status, status)
-          load_group_list
-          load_anime_list
-        rescue StandardError => e
-          dialog_message(@window, :error, :modify_error, e.message)
+        if status.is_a?(String)
+          dialog_message(@window, :error, :modify_error, status)
           next
         end
+
+        next if status.nil?
+
+        @status_label.text = status.status
+        anime_status_btn(status.status, status)
+        load_group_list
+        load_anime_list
       end
 
       con.destroy
     end
 
     @anime_save_btn.signal_connect('clicked') do
-      begin
-        current_episode = @anime_current_entry.text.to_i
-        @anime_controller.modify_anime_current_episode(current_episode, @id)
 
-        dialog_message(@window, :info, :anime_save)
-      rescue StandardError => e
-        dialog_message(@window, :error, :modify_error, e.message)
-        next
-      end
+        current_episode = @anime_current_entry.text.to_i
+        result = @anime_controller.modify_anime_current_episode(current_episode, @id)
+
+        dialog_message(@window, :info, :anime_save) if result.is_a?(TrueClass)
+        dialog_message(@window, :error, :modify_error, result) if result.is_a?(String)
+
     end
 
     @anime_complete_btn.signal_connect('clicked') do
@@ -478,20 +476,21 @@ class ViewIndex
       completion_date = @anime_complete_entry.text.empty? ? nil : @anime_complete_entry.text
 
       if res == Gtk::ResponseType::YES
-        begin
-          @anime_controller.complete_watching_anime(@id, completion_date)
-          status = @anime_controller.get_anime_status(@id)
+        status = @anime_controller.complete_watching_anime(@id, completion_date)
 
-          @status_label.text = status.status
-          @anime_current_entry.text = status.current_episode.to_s
-
-          anime_status_btn(status.status, status)
-          load_group_list
-          load_anime_list
-        rescue StandardError => e
-          dialog_message(@window, :error, :modify_error, e.message)
+        if status.is_a?(String)
+          dialog_message(@window, :error, :modify_error, status)
           next
         end
+
+        next if status.nil?
+
+        @status_label.text = status.status
+        @anime_current_entry.text = status.current_episode.to_s
+
+        anime_status_btn(status.status, status)
+        load_group_list
+        load_anime_list
       end
 
       con.destroy
@@ -578,20 +577,19 @@ class ViewIndex
       completion_date = @book_completed_entry.text.empty? ? nil : @book_completed_entry.text
 
       if res == Gtk::ResponseType::YES
-        begin
-          @book_controller.complete_read_book(@id, completion_date)
-          status = @book_controller.get_book_status(@id)
+        status = @book_controller.complete_read_book(@id, completion_date)
 
-          @book_status_label.text = status.status
-
-          @book_complete_btn.sensitive = false
-
-          load_group_list
-          load_book_list
-        rescue StandardError => e
-          dialog_message(@window, :error, :modify_error, e.message)
+        if status.is_a?(String)
+          dialog_message(@window, :error, :modify_error, status)
           next
         end
+
+        @book_status_label.text = status.status
+
+        @book_complete_btn.sensitive = false
+
+        load_group_list
+        load_book_list
       end
 
       con.destroy
@@ -658,21 +656,21 @@ class ViewIndex
   end
 
   def load_content_data(data)
-    content = begin
-      @content_controller.get_one_content(data)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    result = @content_controller.get_one_content(data)
+
+    if result.is_a?(String)
+      dialog_message(@window, :error, :db_error, result)
       return
     end
 
-    @title_entry.text = content.name
+    @title_entry.text = result.name
   end
 
   def load_group_list
-    group = begin
-      @group_controller.get_group_list_by_content_id(@content_id, @group_keyword)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    group = @group_controller.get_group_list_by_content_id(@content_id, @group_keyword)
+
+    if group.is_a?(String)
+      dialog_message(@window, :error, :db_error, group)
       return
     end
 
@@ -682,7 +680,14 @@ class ViewIndex
       row = Gtk::ListBoxRow.new
       data = truncate_string(item.name, 'view')
 
-      status = group_status(item.id)
+      group_status_info = @group_controller.get_group_status_info(item.id)
+
+      if group_status_info.is_a?(String)
+        dialog_message(@window, :error, :db_error, group_status_info)
+        next
+      end
+
+      status = group_status(group_status_info)
 
       row.add(Gtk::Label.new(data + status))
       row.name = item.id.to_s
@@ -697,7 +702,14 @@ class ViewIndex
 
   def load_data(type_id)
     @type_id = type_id
-    @common_controller.get_one_common(type_id)
+    result = @common_controller.get_one_common(type_id)
+
+    if result.is_a?(String)
+      dialog_message(@window, :error, :db_error, result)
+      return nil
+    end
+
+    result
   end
 
   def db_data(common)
@@ -723,6 +735,11 @@ class ViewIndex
   def load_anime_list
     anime = @anime_controller.get_anime_list(@group_id, @keyword)
 
+    if anime.is_a?(String)
+      dialog_message(@window, :error, :write_error, anime)
+      return
+    end
+
     clear_list_box(@data_list)
 
     anime.each do |item|
@@ -744,6 +761,11 @@ class ViewIndex
   def load_book_list
     book = @book_controller.get_book_list(@type_id, @group_id, @keyword)
 
+    if book.is_a?(String)
+      dialog_message(@window, :error, :db_error, book)
+      return
+    end
+
     clear_list_box(@data_list)
 
     book.each do |item|
@@ -763,14 +785,16 @@ class ViewIndex
   end
 
   def load_anime_data
-    begin
-      anime = @anime_controller.get_anime_by_id(@id)
-      img = @file_controller.get_image_info(@type, @id)
-      status = @anime_controller.get_anime_status(@id)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    data = @anime_controller.get_anime_info_by_id(@type, @id)
+
+    if data.is_a?(String)
+      dialog_message(@window, :error, :db_error, data)
       return
     end
+
+    anime = data['anime']
+    img = data['file']
+    status = data['status']
 
     img_result = convert_image(img)
 
@@ -818,25 +842,17 @@ class ViewIndex
     frame_changer(false, true, false)
   end
 
-  def status_selector(status)
-    begin
-      common = @common_controller.get_one_common(status.id)
-      common.name
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
-      nil
-    end
-  end
-
   def load_book_data
-    begin
-      book = @book_controller.get_book_by_id(@id)
-      img = @file_controller.get_image_info(@type, @id)
-      status = @book_controller.get_book_status(@id)
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    data = @book_controller.get_book_info_by_id(@type, @id)
+
+    if data.is_a?(String)
+      dialog_message(@window, :error, :db_error, data)
       return
     end
+
+    book = data['book']
+    img = data['file']
+    status = data['status']
 
     img_result = convert_image(img)
 
@@ -880,23 +896,23 @@ class ViewIndex
   end
 
   def load_common_data(id)
-    begin
-      common = @common_controller.get_one_common(id)
+    common = @common_controller.get_one_common(id)
 
-      case common.type
-      when 'storage'
-        @storage = common.name
-      when 'rip'
-        @rip = common.name
-      when 'media'
-        @media = common.name
-      end
-
-      common.name
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
-      nil
+    if common.is_a?(String)
+      dialog_message(@window, :error, :db_error, common)
+      return nil
     end
+
+    case common.type
+    when 'storage'
+      @storage = common.name
+    when 'rip'
+      @rip = common.name
+    when 'media'
+      @media = common.name
+    end
+
+    common.name
   end
 
   def load_company_data(id)
@@ -909,15 +925,15 @@ class ViewIndex
   end
 
   def load_group_data
-    begin
-      group = @group_controller.get_one_group(@group_id)
-      original = load_common_data(group.original)
+    group = @group_controller.get_one_group(@group_id)
 
-      @original_label.text = "原作：#{original}"
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
-      nil
+    if group.is_a?(String)
+      dialog_message(@window, :error, :db_error, group)
+      return
     end
+
+    original = load_common_data(group.original)
+    @original_label.text = "原作：#{original}"
   end
 
   def anime_status_btn(status_name, status = nil)
@@ -960,13 +976,14 @@ class ViewIndex
     end
 
     return unless status_name == I18n.t('view.completed') && !status.nil?
+
     @anime_start_btn.sensitive = false
     @anime_stop_btn.sensitive = false
     @anime_save_btn.sensitive = false
     @anime_complete_btn.sensitive = false
 
     @anime_complete_entry.text = status.completion_date.to_s
-    
+
   end
 
   def load_initial_data(data)
@@ -1003,9 +1020,13 @@ class ViewIndex
     @status_check_btn.sensitive = if [7, 10].include?(original_data)
                                     false
                                   else
-                                    @book_count = @book_controller.get_book_count_by_group_id(@type_id, @group_id)
-
-                                    @book_count > 0
+                                    result = @book_controller.get_book_count_by_group_id(@type_id, @group_id)
+                                    if result.is_a?(String)
+                                      dialog_message(@window, :error, :db_error, result)
+                                      return false
+                                    end
+                                    @book_count = result
+                                    true
                                   end
   end
 
@@ -1028,6 +1049,12 @@ class ViewIndex
   def check_book_status
 
     completed_count = @book_controller.get_completed_book_count_by_group_id(@type_id, @group_id)
+
+    if completed_count.is_a?(String)
+      dialog_message(@window, :error, :db_error, completed_count)
+      return
+    end
+
     total_count = @book_count
 
     remainder = total_count - completed_count

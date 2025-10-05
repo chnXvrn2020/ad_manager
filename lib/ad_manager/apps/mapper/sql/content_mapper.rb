@@ -71,7 +71,7 @@ class ContentMapper
 
   def select_content_count(db, keyword = nil, status = nil)
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM (
          SELECT DISTINCT tc.id, tc.name
          FROM tb_content tc
@@ -126,7 +126,7 @@ class ContentMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
 
   end
 

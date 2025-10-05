@@ -1,0 +1,11 @@
+class FileService
+  def add_image_file: -> void
+
+  def delete_image_file: -> void
+
+  def get_image_file: -> Files
+
+  def get_image_info: -> Files
+
+  def modify_image_file: -> void
+end

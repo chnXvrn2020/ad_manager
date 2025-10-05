@@ -34,7 +34,7 @@ class CommonMapper
   def select_count_by_type(db, type, keyword = nil)
 
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM tb_common
       WHERE type = ?
       AND use_yn = 'Y'
@@ -49,13 +49,14 @@ class CommonMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
 
   end
 
   def select_by_types(db, types)
 
-    placeholder = types.map { '?' }.join(',')
+    placeholder = types.map { '?' }.join(',') if types.is_a?(Array)
+    placeholder = '?' if types.is_a?(String)
 
     sql = <<-SQL
       SELECT *

@@ -1,0 +1,27 @@
+class GroupService
+  def add_group: -> { }
+
+  def find_group_on_map: -> { }
+
+  def get_book_group_list_with_count: -> hash[array[Group], Page]
+
+  def get_group_list: -> array[Group]
+
+  def get_group_list_by_content_id: -> array[Group]
+
+  def get_group_list_with_count: -> hash[Group, Page]
+
+  def get_group_status_info: -> { }
+
+  def get_one_group: -> { }
+
+  def get_selected_group_list: -> { }
+
+  def modify_one_group: -> bool
+
+  def remove_mapping_group: -> void
+
+  def remove_one_group: -> void
+
+  def set_mapping_group: -> void
+end

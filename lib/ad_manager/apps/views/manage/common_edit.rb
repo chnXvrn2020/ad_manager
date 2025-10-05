@@ -130,31 +130,35 @@ class CommonEdit < Gtk::Dialog
         next
       end
 
-      success = begin
-        case @type
-        when 'content'
-          @last_id = @content_controller.add_content(@entry.text.to_s.strip)
+      result = case @type
+               when 'content'
+                 data = @content_controller.add_content(@entry.text.to_s.strip)
 
-          if @last_id.nil?
-            false
-          else
-            true
-          end
-        when 'studio', 'publisher'
-          company = { 'type' => @type, 'name' => @entry.text.to_s.strip }
+                 return data if data.is_a?(String)
 
-          @company_controller.add_one_company(Company.new(company))
-        else
-          common = { 'type' => @type, 'name' => @entry.text.to_s.strip }
+                 @last_id = data
 
-          @common_controller.add_one_common(Common.new(common))
-        end
-      rescue StandardError => e
-        dialog_message(self, :error, :write_error, e.message)
+                 if @last_id.nil?
+                   false
+                 else
+                   true
+                 end
+               when 'studio', 'publisher'
+                 company = { 'type' => @type, 'name' => @entry.text.to_s.strip }
+
+                 @company_controller.add_one_company(Company.new(company))
+               else
+                 common = { 'type' => @type, 'name' => @entry.text.to_s.strip }
+
+                 @common_controller.add_one_common(Common.new(common))
+               end
+
+      if result.is_a?(String)
+        dialog_message(self, :error, :write_error, result)
         next
       end
 
-      if success
+      if result
         dialog_message(self, :info, :write_success)
 
         response(Gtk::ResponseType::OK)
@@ -196,14 +200,14 @@ class CommonEdit < Gtk::Dialog
 
       common = { 'id' => @data, 'type' => @type, 'name' => @entry.text.to_s.strip }
 
-      success = begin
-        @common_controller.modify_one_common(Common.new(common))
-      rescue StandardError => e
-        dialog_message(self, :error, :modify_error, e.message)
+      result = @common_controller.modify_one_common(Common.new(common))
+
+      if result.is_a?(String)
+        dialog_message(self, :error, :modify_error, result)
         next
       end
 
-      if success
+      if result
         dialog_message(self, :info, :modify_success)
       else
         dialog_message(self, :warning, :duplicate_data)
@@ -216,17 +220,17 @@ class CommonEdit < Gtk::Dialog
       res = con.run
 
       if res == Gtk::ResponseType::YES
-        begin
-          @common_controller.remove_one_common(@data)
+        result = @common_controller.remove_one_common(@data)
 
-          dialog_message(self, :info, :remove_success)
-
-          response(Gtk::ResponseType::OK)
-          destroy
-        rescue StandardError => e
-          dialog_message(self, :error, :remove_error, e.message)
+        if result.is_a?(String)
+          dialog_message(self, :error, :remove_error, result)
           next
         end
+
+        dialog_message(self, :info, :remove_success)
+
+        response(Gtk::ResponseType::OK)
+        destroy
       end
 
       con.destroy
@@ -236,11 +240,12 @@ class CommonEdit < Gtk::Dialog
   def load_data
     return if @data.nil?
 
-    common = begin
-     @common_controller.get_one_common(@data)
-   rescue StandardError => e
-     dialog_message(self, :error, :db_error, e.message)
-   end
+    common = @common_controller.get_one_common(@data)
+
+    if common.is_a?(String)
+      dialog_message(self, :error, :db_error, common)
+      return
+    end
 
     @entry.text = common.name
   end

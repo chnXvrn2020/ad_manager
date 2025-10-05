@@ -341,19 +341,21 @@ class ManageIndex
   end
 
   def db_data
-    begin
-      case @radio_active.label
-      when I18n.t('radio_menu.content')
-        @content_controller.get_content_list(@current_page, @keyword)
-      when I18n.t('radio_menu.studio'), I18n.t('radio_menu.publisher')
-        @company_controller.get_company_list(@radio_active.label, @current_page, @keyword)
-      else
-        @common_controller.get_common_list(@radio_active.label, @current_page, @keyword)
-      end
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
 
-      []
+    result = case @radio_active.label
+             when I18n.t('radio_menu.content')
+               @content_controller.get_content_list(@current_page, @keyword)
+             when I18n.t('radio_menu.studio'), I18n.t('radio_menu.publisher')
+               @company_controller.get_company_list(@radio_active.label, @current_page, @keyword)
+             else
+               @common_controller.get_common_list(@radio_active.label, @current_page, @keyword)
+             end
+
+    if result.is_a?(String)
+            dialog_message(@window, :error, :db_error, result)
+            []
+    else
+            result
     end
   end
 end

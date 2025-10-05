@@ -1,0 +1,33 @@
+class AnimeService
+  def add_anime: -> (int|nil)
+
+  def complete_watching_anime: -> void
+
+  def get_anime_by_id: -> { }
+
+  def get_anime_info_by_id: -> hash[Anime, Anime | nil]
+
+  def get_anime_list: -> { }
+
+  def get_anime_list_with_count: -> hash[array[Anime], Page]
+
+  def get_anime_status: -> {  }
+
+  def get_unselected_anime_list: -> { }
+
+  def modify_anime: -> bool
+
+  def modify_anime_current_episode: -> void
+
+  def modify_watching_anime: -> void
+
+  def recommend_anime: -> { }
+
+  def remove_anime: -> String
+
+  def remove_mapping_anime: -> void
+
+  def set_mapping_anime: -> void
+
+  def start_watching_anime: -> { }
+end

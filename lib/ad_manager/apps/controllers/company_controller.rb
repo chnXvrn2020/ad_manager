@@ -8,83 +8,73 @@ class CompanyController
     return if type.nil?
 
     db = connect_to_db
-    count = CompanyMapper.instance.select_count_by_type(db, type, keyword)
-    page = Page.new(count, current_page)
-    company = CompanyMapper.instance.select_by_type(db, type, page, keyword)
-    db.close
-
-    model = []
-
-    company.each do |hash|
-      model << Company.new(hash)
+    begin
+      CompanyService.instance.get_company_list(db, type, current_page, keyword)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
     end
-
-    { 'model' => model, 'page' => page }
   end
 
   def add_one_company(company)
     db = connect_to_db
 
-    if CompanyMapper.instance.check_duplicate_name(db, company)
+    begin
+      CompanyService.instance.add_one_company(db, company)
+    rescue StandardError => e
+      e.message
+    ensure
       db.close
-      return false
     end
-
-    CompanyMapper.instance.insert_company(db, company)
-    db.close
-
-    true
   end
 
   def get_company_group(id, keyword = nil)
     db = connect_to_db
-    parent_id = CompanyMapper.instance.select_parent_id_by_id(db, id)
-    id = parent_id.zero? ? id : parent_id
 
-    data = CompanyMapper.instance.select_group_by_id(db, id, keyword)
-    db.close
-
-    company = []
-
-    data.each do |hash|
-      company << Company.new(hash)
+    begin
+      CompanyService.instance.get_company_group(db, id, keyword)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
     end
-
-    company
-  end
-
-  def get_company_group_count(id)
-    db = connect_to_db
-
-    parent_id = CompanyMapper.instance.select_parent_id_by_id(db, id)
-    id = parent_id.zero? ? id : parent_id
-
-    count = CompanyMapper.instance.select_group_count_by_id(db, id)
-    db.close
-
-    count
   end
 
   def add_child_company(company)
     db = connect_to_db
 
-    if CompanyMapper.instance.check_duplicate_name(db, company)
+    begin
+      CompanyService.instance.add_child_company(db, company)
+    rescue StandardError => e
+      e.message
+    ensure
       db.close
-      return false
     end
-    parent_id = CompanyMapper.instance.select_parent_id_by_id(db, company.parent_id)
-    company.parent_id = parent_id.zero? ? company.parent_id : parent_id
+  end
 
-    CompanyMapper.instance.insert_child_company(db, company)
-    db.close
+  def get_company_info(id)
+    db = connect_to_db
 
-    true
+    begin
+      CompanyService.instance.get_company_info(db, id)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
   end
 
   def get_one_company(id)
     db = connect_to_db
-    data = CompanyMapper.instance.select_by_id(db, id)
-    db.close
+
+    data = begin
+      CompanyService.instance.get_one_company(db, id)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
 
     Company.new(data[0])
   end
@@ -92,69 +82,70 @@ class CompanyController
   def modify_one_company(company)
     db = connect_to_db
 
-    if CompanyMapper.instance.check_duplicate_name(db, company)
+    begin
+      CompanyService.instance.modify_one_company(db, company)
+    rescue StandardError => e
+      e.message
+    ensure
       db.close
-      return false
     end
-
-    CompanyMapper.instance.update_by_id(db, company)
-    db.close
-
-    true
   end
 
   def change_current_yn(id)
     db = connect_to_db
 
-    parent_id = CompanyMapper.instance.select_parent_id_by_id(db, id)
-    parent_id = parent_id.zero? ? id : parent_id
+    begin
+      db.transaction
+      CompanyService.instance.change_current_yn(db, id)
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      return e.message
+    ensure
+      db.close
+    end
 
-    CompanyMapper.instance.update_all_current_yn_by_id(db, parent_id)
-
-    CompanyMapper.instance.update_current_yn_by_id(db, id)
-    db.close
+    true
   end
 
   def remove_one_company(id)
     db = connect_to_db
-    CompanyMapper.instance.delete_by_id(db, id)
-    db.close
+
+    begin
+      CompanyService.instance.remove_one_company(db, id)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
   end
 
   def remove_company_group(id)
     db = connect_to_db
-    CompanyMapper.instance.delete_all_by_id(db, id)
-    db.close
+
+    begin
+      CompanyService.instance.remove_company_group(db, id)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
   end
 
   def get_all_company_list(type, ides = nil, keyword = nil)
     db = connect_to_db
-    data = CompanyMapper.instance.select_all_by_type(db, type, ides, keyword)
-    db.close
 
-    company = []
-
-    data.each do |hash|
-      company << Company.new(hash)
+    begin
+      CompanyService.instance.get_all_company_list(db, type, ides, keyword)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
     end
-
-    company
-
-  end
-
-  def get_selected_company_list(type, ides)
-    db = connect_to_db
-    data = CompanyMapper.instance.select_selected_group_list_by_type(db, type, ides)
-    db.close
-
-    company = []
-
-    data.each do |hash|
-      company << Company.new(hash)
-    end
-
-    company
-
   end
 
 end

@@ -175,10 +175,10 @@ class GroupSelector < Gtk::Dialog
   end
 
   def add_group(widget, item, selected_row)
-    begin
-      @controller.set_mapping_group(@id, item)
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    result = @controller.set_mapping_group(@id, item)
+
+    if result.is_a?(String)
+      dialog_message(self, :error, :db_error, result)
       return
     end
 
@@ -202,9 +202,9 @@ class GroupSelector < Gtk::Dialog
   end
 
   def remove_selected_group(widget, item, selected_row)
-    begin
-      @controller.remove_mapping_group(@id, item)
-    rescue StandardError => e
+    result = @controller.remove_mapping_group(@id, item)
+
+    if result.is_a?(String)
       dialog_message(self, :error, :db_error, e.message)
       return
     end
@@ -236,14 +236,14 @@ class GroupSelector < Gtk::Dialog
   def load_group_data
     clear_list_box(@group_list)
 
-    group = begin
-      if @group_list_mode == 'all'
-        @controller.get_group_list(@id, @param)
-      elsif @group_list_mode == 'only'
-        @controller.get_group_list(nil, @param)
-      end
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    group = if @group_list_mode == 'all'
+              @controller.get_group_list(@id, @param)
+            elsif @group_list_mode == 'only'
+              @controller.get_group_list(nil, @param)
+            end
+
+    if group.is_a?(String)
+      dialog_message(self, :error, :db_error, group)
       return
     end
 
@@ -262,9 +262,9 @@ class GroupSelector < Gtk::Dialog
   def load_selected_group_data
     clear_list_box(@selected_list)
 
-    selected_group = begin
-      @controller.get_selected_group_list(@id)
-    rescue StandardError => e
+    selected_group = @controller.get_selected_group_list(@id)
+
+    if selected_group.is_a?(String)
       dialog_message(self, :error, :db_error, e.message)
       return
     end

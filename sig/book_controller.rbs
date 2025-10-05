@@ -1,25 +1,30 @@
 class BookController
-  def add_book: -> int
+  def add_book: -> (bool | String)
 
-  def get_book_by_id: -> Book
+  def complete_read_book: -> (Book | nil | String)
 
-  def get_book_count_by_group_id: -> int
+  def get_book_by_id: -> (Book | String)
 
-  def get_book_list: -> array[Book]
+  def get_book_count_by_group_id: -> (int | String)
 
-  def get_book_list_with_count: -> hash[Book, Page]
+  def get_book_info_by_id: -> (hash[Book, Page, File] | String)
 
-  def get_book_status: -> Book
+  def get_book_list: -> (array[Book] | String)
 
-  def get_completed_book_count_by_group_id: -> int
+  def get_book_list_with_count: -> (hash[Book, Page] | String)
 
-  def get_unselected_book_list: -> array[Book]
+  def get_completed_book_count_by_group_id: -> (int | String)
 
-  def modify_book: -> bool
+  def get_unselected_book_list: -> (array[Book] | String)
 
-  def remove_book: -> nil
+  def modify_book: -> (bool | String)
 
-  def set_mapping_book: -> nil
+  def recommend_book: -> ({ } | String)
 
-  def set_remove_book: -> nil
+  def remove_book: -> void
+
+  def remove_mapping_book: -> (bool | String)
+
+  def set_mapping_book: -> (bool | String)
+
 end

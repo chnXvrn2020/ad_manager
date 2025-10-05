@@ -1,0 +1,14 @@
+class CommonService
+
+  def add_one_common: -> bool
+
+  def get_common_list: -> hash[Array[Common], Page ]
+
+  def get_one_common: -> { }
+
+  def get_type_menu: -> { }
+
+  def modify_one_common: -> bool
+
+  def remove_one_common: -> void
+end

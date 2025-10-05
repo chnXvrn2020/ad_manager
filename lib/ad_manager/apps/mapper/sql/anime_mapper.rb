@@ -116,7 +116,7 @@ class AnimeMapper
 
   def select_all_count(db, keyword = nil, status = nil)
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM (
           SELECT ta.id, ta.name
           FROM tb_anime ta
@@ -150,7 +150,7 @@ class AnimeMapper
 
     count = db.execute(sql, args)
 
-    count[0][0]
+    count[0]['count']
   end
 
   def select_anime_status(db, id)
@@ -348,7 +348,7 @@ class AnimeMapper
 
   def check_others(db, anime)
     sql = <<~SQL
-      SELECT count(*)
+      SELECT count(*) AS count
       FROM tb_anime
       WHERE id = ?
       AND storage = ?
@@ -363,21 +363,19 @@ class AnimeMapper
 
     count = db.execute(sql, args)
 
-    p count[0][0]
-
-    count[0][0]
+    count[0]['count']
   end
 
   def select_all_anime_count(db)
     sql = <<~SQL
-      SELECT COUNT(*)
+      SELECT COUNT(*) AS count
       FROM tb_anime
       WHERE use_yn = 'Y'
     SQL
 
     count = db.execute(sql)
 
-    count[0][0]
+    count[0]['count']
   end
 
   def select_current_status_by_group_id(db, group_id)

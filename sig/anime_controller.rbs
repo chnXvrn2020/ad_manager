@@ -1,33 +1,31 @@
 class AnimeController
-  def add_anime: -> int
+  def add_anime: -> (bool | String)
 
-  def complete_watching_anime: -> nil
+  def complete_watching_anime: -> (Anime | nil | String)
 
   def get_anime_by_id: -> Anime
 
-  def get_anime_list: -> array[Anime]
+  def get_anime_info_by_id: -> (hash[Anime, Anime, Files] | nil | String)
 
-  def get_anime_list_with_count: -> hash[Anime, Page]
+  def get_anime_list: -> (array[Anime] | String)
 
-  def get_anime_status: -> Anime
+  def get_anime_list_with_count: -> (hash[array[Anime], Page] | String)
 
-  def get_current_status: -> Hash[string, int]
+  def get_unselected_anime_list: -> (array[Anime] | String)
 
-  def get_unselected_anime_list: -> array[Anime]
+  def modify_anime: -> (bool | String)
 
-  def modify_anime: -> bool
+  def modify_anime_current_episode: -> (bool | String)
 
-  def modify_anime_current_episode: -> nil
+  def modify_watching_anime: -> (Anime | nil | String)
 
-  def modify_watching_anime: -> nil
+  def recommend_anime: -> ({ } | String)
 
-  def recommend_anime: -> Anime
+  def remove_anime: -> (bool | String)
 
-  def remove_anime: -> nil
+  def remove_mapping_anime: -> (bool | String)
 
-  def remove_mapping_anime: -> nil
+  def set_mapping_anime: -> (bool | String)
 
-  def set_mapping_anime: -> nil
-
-  def start_watching_anime: -> nil
+  def start_watching_anime: -> (Anime | nil | String)
 end

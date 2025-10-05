@@ -1,0 +1,13 @@
+class ContentService
+  def add_content: -> (int | nil)
+
+  def find_content_on_map: -> { }
+
+  def get_content_list: -> hash[array[Content], Page]
+
+  def get_one_content: -> { }
+
+  def modify_content: -> bool
+
+  def remove_content: -> void
+end

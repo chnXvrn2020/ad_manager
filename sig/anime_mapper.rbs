@@ -3,11 +3,11 @@ class AnimeMapper
 
   def check_others: -> int
 
-  def delete_anime: -> nil
+  def delete_anime: -> void
 
   def insert_anime: -> int
 
-  def insert_anime_status: -> nil
+  def insert_anime_status: -> void
 
   def select_all: -> { }
 
@@ -23,9 +23,15 @@ class AnimeMapper
 
   def select_current_status_by_group_id: -> { }
 
-  def update_anime: -> nil
+  def select_recommend_anime_by_group_id: -> { }
 
-  def update_anime_complete: -> nil
+  def select_unselected_anime_list_by_group_id: -> { }
 
-  def update_anime_current_episode: -> nil
+  def update_anime: -> void
+
+  def update_anime_complete: -> void
+
+  def update_anime_current_episode: -> void
+
+  def update_anime_status: -> void
 end

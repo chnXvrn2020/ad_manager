@@ -1,21 +1,27 @@
 class GroupController
-  def add_group: -> bool
+  def add_group: -> (bool | String)
 
-  def get_group_list: -> array[Group]
+  def find_group_on_map: -> ( {} | String)
 
-  def get_group_list_by_content_id: -> array[Group]
+  def get_book_group_list_with_count: -> (hash[Group, Page] | String)
 
-  def get_group_list_with_count: -> hash[Group, Page]
+  def get_group_list: -> (array[Group] | String)
 
-  def get_one_group: -> Group
+  def get_group_list_by_content_id: -> (array[Group] | String)
 
-  def get_selected_group_list: -> array[Group]
+  def get_group_list_with_count: -> (hash[array[Group], Page] | String)
 
-  def modify_one_group: -> bool
+  def get_group_status_info: -> ( {} | String )
 
-  def remove_mapping_group: -> nil
+  def get_one_group: -> (Group | String)
 
-  def remove_one_group: -> nil
+  def get_selected_group_list: -> (array[Group] | String)
 
-  def set_mapping_group: -> nil
+  def modify_one_group: -> (bool | String)
+
+  def remove_mapping_group: -> (bool | String)
+
+  def remove_one_group: -> (bool | String)
+
+  def set_mapping_group: -> (bool | String)
 end

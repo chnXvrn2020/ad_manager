@@ -112,10 +112,10 @@ class CompanyEdit < Gtk::Dialog
 
       company = { 'type' => @type, 'name' => @entry.text.to_s.strip, 'parent_id' => @id }
 
-      begin
-        success = @controller.add_child_company(Company.new(company))
-      rescue StandardError => e
-        dialog_message(self, :error, :write_error, e.message)
+      success = @controller.add_child_company(Company.new(company))
+
+      if success.is_a?(String)
+        dialog_message(self, :error, :write_error, success)
         next
       end
 
@@ -161,14 +161,14 @@ class CompanyEdit < Gtk::Dialog
 
       company = { 'id' => @id, 'type' => @type, 'name' => @entry.text.to_s.strip }
 
-      begin
-        success = @controller.modify_one_company(Company.new(company))
-      rescue StandardError => e
-        dialog_message(self, :error, :modify_error, e.message)
+      result = @controller.modify_one_company(Company.new(company))
+
+      if result.is_a?(String)
+        dialog_message(self, :error, :modify_error, result)
         next
       end
 
-      if success
+      if result
         dialog_message(self, :info, :modify_success)
       else
         dialog_message(self, :warning, :duplicate_data)
@@ -177,10 +177,10 @@ class CompanyEdit < Gtk::Dialog
     end
 
     @change_button.signal_connect('clicked') do
-      begin
-        @controller.change_current_yn(@id)
-      rescue StandardError => e
-        dialog_message(self, :error, :modify_error, e.message)
+      result = @controller.change_current_yn(@id)
+
+      if result.is_a?(String)
+        dialog_message(self, :error, :modify_error, result)
         next
       end
 
@@ -195,19 +195,18 @@ class CompanyEdit < Gtk::Dialog
       res = con.run
 
       if res == Gtk::ResponseType::YES
-        begin
-          @controller.remove_one_company(@id)
+        result = @controller.remove_one_company(@id)
 
-          dialog_message(self, :info, :remove_success)
-
-          response(Gtk::ResponseType::OK)
-          destroy
-        rescue StandardError => e
-          dialog_message(self, :error, :remove_error, e.message)
+        if result.is_a?(String)
+          dialog_message(self, :error, :remove_error, result)
           next
         end
-      end
 
+        dialog_message(self, :info, :remove_success)
+
+        response(Gtk::ResponseType::OK)
+        destroy
+      end
       con.destroy
     end
 
@@ -216,13 +215,15 @@ class CompanyEdit < Gtk::Dialog
   def load_data
     return if @id.nil?
 
-    begin
-      company = @controller.get_one_company(@id)
-      count = @controller.get_company_group_count(@id)
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    result = @controller.get_company_info(@id)
+
+    if result.is_a?(String)
+      dialog_message(self, :error, :db_error, result)
       return
     end
+
+    company = result['company']
+    count = result['count']
 
     @entry.text = company.name
     @change_button.sensitive = false if company.current_yn == 'Y'

@@ -1,0 +1,29 @@
+class BookService
+  def add_book: -> (int|nil)
+
+  def complete_read_book: -> { }
+
+  def get_book_by_id: -> { }
+
+  def get_book_count_by_group_id: -> int
+
+  def get_book_info_by_id: -> (hash[Book, Book | nil])
+
+  def get_book_list: -> { }
+
+  def get_book_list_with_count: -> hash[Book, Page]
+
+  def get_completed_book_count_by_group_id: -> int
+
+  def get_unselected_book_list: -> { }
+
+  def modify_book: -> bool
+
+  def recommend_book: -> { }
+
+  def remove_book: -> void
+
+  def remove_mapping_book: -> void
+
+  def set_mapping_book: -> void
+end

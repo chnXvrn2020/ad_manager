@@ -138,14 +138,14 @@ class GroupEdit < Gtk::Dialog
 
       group = { 'original' => original, 'name' => @entry.text.to_s.strip }
 
-      begin
-        success = @group_controller.add_group(Group.new(group))
-      rescue StandardError => e
-        dialog_message(self, :error, :write_error, e.message)
+      result = @group_controller.add_group(Group.new(group))
+
+      if result.is_a?(String)
+        dialog_message(self, :error, :write_error, result)
         next
       end
 
-      if success
+      if result
         dialog_message(self, :info, :write_success)
 
         response(Gtk::ResponseType::OK)
@@ -185,14 +185,14 @@ class GroupEdit < Gtk::Dialog
 
       group = { 'id' => @id, 'original' => original, 'name' => @entry.text.to_s.strip }
 
-      begin
-        success = @group_controller.modify_one_group(Group.new(group))
-      rescue StandardError => e
+      result = @group_controller.modify_one_group(Group.new(group))
+
+      if result.is_a?(String)
         dialog_message(self, :error, :modify_error, e.message)
         next
       end
 
-      if success
+      if result
         dialog_message(self, :info, :modify_success)
       else
         dialog_message(self, :warning, :duplicate_data)
@@ -205,17 +205,17 @@ class GroupEdit < Gtk::Dialog
       res = con.run
 
       if res == Gtk::ResponseType::YES
-        begin
-          @group_controller.remove_one_group(@id)
+        result = @group_controller.remove_one_group(@id)
 
-          dialog_message(self, :info, :remove_success)
-
-          response(Gtk::ResponseType::OK)
-          destroy
-        rescue StandardError => e
-          dialog_message(self, :error, :remove_error, e.message)
+        if result.is_a?(String)
+          dialog_message(self, :error, :remove_error, result)
           next
         end
+
+        dialog_message(self, :info, :remove_success)
+
+        response(Gtk::ResponseType::OK)
+        destroy
       end
 
       con.destroy
@@ -227,7 +227,7 @@ class GroupEdit < Gtk::Dialog
     combo_model = Gtk::ListStore.new(String, Integer)
 
     original = begin
-      @common_controller.get_type_menu(['original'])
+      @common_controller.get_type_menu('original')
     rescue StandardError => e
       dialog_message(@window, :error, :db_error, e.message)
       return
@@ -251,9 +251,9 @@ class GroupEdit < Gtk::Dialog
   end
 
   def load_data
-    group = begin
-      @group_controller.get_one_group(@id)
-    rescue StandardError => e
+    group = @group_controller.get_one_group(@id)
+
+    if group.is_a?(String)
       dialog_message(@window, :error, :db_error, e.message)
       return
     end

@@ -1,25 +1,25 @@
 class CompanyController
-  def add_child_company: -> bool
+  def add_child_company: -> (bool | String)
 
-  def add_one_company: -> bool
+  def add_one_company: -> (bool | String)
 
-  def change_current_yn: -> nil
+  def change_current_yn: -> (bool | String)
 
-  def get_all_company_list: -> array[Company]
+  def get_all_company_list: -> (array[Company] | String)
 
-  def get_company_group: -> array[Company]
+  def get_company_group: -> (array[Company] | String)
 
-  def get_company_group_count: -> int
+  def get_company_info: -> (hash[Company, int] | String)
 
-  def get_company_list: -> hash[Company, Page]
+  def get_company_list: -> (hash[Company, Page] | String)
 
-  def get_one_company: -> Company
+  def get_one_company: -> (Company | String)
 
   def get_selected_company_list: -> array[Company]
 
-  def modify_one_company: -> bool
+  def modify_one_company: -> (bool | String)
 
-  def remove_company_group: -> nil
+  def remove_company_group: -> (bool | String)
 
-  def remove_one_company: -> nil
+  def remove_one_company: -> (bool | String)
 end

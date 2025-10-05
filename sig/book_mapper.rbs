@@ -1,21 +1,33 @@
 class BookMapper
+  def book_recommend_by_type_id: -> { }
+
   def check_duplicate_name: -> bool
 
-  def delete_book: -> nil
+  def delete_book: -> void
 
   def insert_book: -> int
 
+  def insert_book_complete: -> void
+
   def select_all: -> { }
+
+  def select_all_book_count_by_group_id: -> int
 
   def select_all_count: -> int
 
   def select_book_by_id: -> { }
 
+  def select_book_count_by_group_id: -> int
+
   def select_book_list: -> { }
 
   def select_book_status: -> { }
 
+  def select_book_status_count_by_group_id: -> int
+
   def select_completed_book_count_by_group_id: -> int
 
-  def update_book: -> nil
+  def select_unselected_book_list: -> { }
+
+  def update_book: -> void
 end

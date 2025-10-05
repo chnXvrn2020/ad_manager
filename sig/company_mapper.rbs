@@ -23,8 +23,6 @@ class CompanyMapper
 
   def select_parent_id_by_id: -> int
 
-  def select_selected_group_list_by_type: -> { }
-
   def update_all_current_yn_by_id: -> nil
 
   def update_by_id: -> nil

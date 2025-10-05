@@ -2,53 +2,68 @@
 
 class AnimeController
 
-  def add_anime(anime)
+  def add_anime(param)
     db = connect_to_db
 
-    if AnimeMapper.instance.check_duplicate_name(db, anime)
+    begin
+      db.transaction
+      last_id = AnimeService.instance.add_anime(db, param[:anime])
+      raise if last_id.nil?
+
+      file = file_upload(param[:img_file_name], param[:content_type], last_id)
+
+      FileService.instance.add_image_file(db, Files.new(file)) unless file.nil?
+      AnimeService.instance.set_mapping_anime(db, param[:group_id], last_id)
+
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      File.delete("#{img_path}#{file["file_name"]}") unless file.nil?
+      return e.message
+    ensure
       db.close
-      return nil
     end
 
-    last_id = AnimeMapper.instance.insert_anime(db, anime)
-
-    db.close
-
-    last_id
+    true
   end
 
   def set_mapping_anime(group_id, anime_id)
-    from_tb = 'tb_group'
-    refer_tb = 'tb_anime'
-
-    map = Map.new({'from_tb' => from_tb,
-                   'from_id' => group_id,
-                   'refer_tb' => refer_tb,
-                   'refer_id' => anime_id})
-
     db = connect_to_db
-    MapMapper.instance.insert_mapping(db, map)
-    db.close
+
+    begin
+      AnimeService.instance.set_mapping_anime(db, group_id, anime_id)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
   end
 
   def remove_mapping_anime(group_id, anime_id)
-    from_tb = 'tb_group'
-    refer_tb = 'tb_anime'
-
-    map = Map.new({'from_tb' => from_tb,
-                   'from_id' => group_id,
-                   'refer_tb' => refer_tb,
-                   'refer_id' => anime_id})
-
     db = connect_to_db
-    MapMapper.instance.delete_one_mapping(db, map)
-    db.close
+
+    begin
+      AnimeService.instance.remove_mapping_anime(db, group_id, anime_id)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
   end
 
   def get_anime_list(group_id, keyword = nil)
     db = connect_to_db
-    data = AnimeMapper.instance.select_anime_list_by_group_id(db, group_id, keyword)
-    db.close
+    data = begin
+             AnimeService.instance.get_anime_list(db, group_id, keyword)
+    rescue StandardError => e
+             return e.message
+    ensure
+             db.close
+    end
 
     anime = []
 
@@ -57,13 +72,18 @@ class AnimeController
     end
 
     anime
-
   end
 
   def get_unselected_anime_list(group_id, keyword = nil)
     db = connect_to_db
-    data = AnimeMapper.instance.select_unselected_anime_list_by_group_id(db, group_id, keyword)
-    db.close
+
+    data = begin
+             AnimeService.instance.get_unselected_anime_list(db, group_id, keyword)
+    rescue StandardError => e
+             return e.message
+    ensure
+             db.close
+    end
 
     anime = []
 
@@ -74,101 +94,185 @@ class AnimeController
     anime
   end
 
-  def get_anime_status(id)
+  def start_watching_anime(id)
     db = connect_to_db
-    data = AnimeMapper.instance.select_anime_status(db, id)
-    db.close
+    data = {}
+
+    begin
+      db.transaction
+      data = AnimeService.instance.start_watching_anime(db, id)
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      return e.message
+    ensure
+      db.close
+    end
 
     return nil if data.empty?
 
     Anime.new(data[0])
   end
 
-  def start_watching_anime(id)
-    db = connect_to_db
-    AnimeMapper.instance.insert_anime_status(db, id)
-    db.close
-  end
+  def modify_watching_anime(type, id)
+    status = 4 if type == :anime_stop
+    status = 2 if type == :anime_restart
 
-  def modify_watching_anime(status, id)
     db = connect_to_db
-    AnimeMapper.instance.update_anime_status(db, status, id)
-    db.close
+    data = {}
+
+    begin
+      db.transaction
+      data = AnimeService.instance.modify_watching_anime(db, status, id)
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      return e.message
+    ensure
+      db.close
+    end
+
+    return nil if data.empty?
+
+    Anime.new(data[0])
   end
 
   def modify_anime_current_episode(current_episode, id)
     db = connect_to_db
-    AnimeMapper.instance.update_anime_current_episode(db, current_episode, id)
-    db.close
-  end
 
-  def complete_watching_anime(id, completion_date = nil)
-    db = connect_to_db
-    AnimeMapper.instance.update_anime_complete(db, id, completion_date)
-    db.close
-  end
-
-  def get_anime_list_with_count(current_page = 1, keyword = nil, status = nil)
-    db = connect_to_db
-    count = AnimeMapper.instance.select_all_count(db, keyword, status)
-    page = Page.new(count, current_page)
-    anime = AnimeMapper.instance.select_all(db, page, keyword, status)
-    db.close
-
-    # content_sort(anime) unless status == 32 || status.nil?
-
-    model = []
-
-    anime.each do |hash|
-      model << Anime.new(hash)
-    end
-
-    { 'model' => model, 'page' => page }
-  end
-
-  def get_anime_by_id(id)
-    db = connect_to_db
-    data = AnimeMapper.instance.select_anime_by_id(db, id)
-    db.close
-
-    Anime.new(data[0])
-  end
-
-  def modify_anime(anime)
-    db = connect_to_db
-
-    if AnimeMapper.instance.check_duplicate_name(db, anime) &&
-      AnimeMapper.instance.check_others(db, anime) >= 1
+    begin
+      AnimeService.instance.modify_anime_current_episode(db, current_episode, id)
+    rescue StandardError => e
+      return e.message
+    ensure
       db.close
-      return false
     end
-
-    AnimeMapper.instance.update_anime(db, anime)
-    db.close
 
     true
   end
 
-  def remove_anime(id)
+  def complete_watching_anime(id, completion_date = nil)
     db = connect_to_db
-    AnimeMapper.instance.delete_anime(db, id)
-    db.close
-  end
+    data = {}
 
-  def get_current_status(group_id)
-    db = connect_to_db
-    data = AnimeMapper.instance.select_current_status_by_group_id(db, group_id)
-    db.close
+    begin
+      db.transaction
+      data = AnimeService.instance.complete_watching_anime(db, id, completion_date)
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      return e.message
+    ensure
+      db.close
+    end
 
-    data
-  end
-
-  def recommend_anime(group_id)
-    db = connect_to_db
-    data = AnimeMapper.instance.select_recommend_anime_by_group_id(db, group_id)
-    db.close
+    return nil if data.empty?
 
     Anime.new(data[0])
+  end
+
+  def get_anime_list_with_count(current_page = 1, keyword = nil, status = nil)
+    db = connect_to_db
+
+    begin
+      AnimeService.instance.get_anime_list_with_count(db, keyword, status, current_page)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
+  end
+
+  def get_anime_by_id(id)
+    db = connect_to_db
+
+    begin
+      data = AnimeService.instance.get_anime_by_id(db, id)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    Anime.new(data[0])
+  end
+
+  def get_anime_info_by_id(type, id)
+    db = connect_to_db
+
+    begin
+      anime_info = AnimeService.instance.get_anime_info_by_id(db, id)
+      anime_file = FileService.instance.get_image_file(db, type, id)
+
+      anime_info.merge!("file" => anime_file)
+    rescue StandardError => e
+      return e.message
+    ensure
+      db.close
+    end
+
+    anime_info
+  end
+
+  def modify_anime(anime, img)
+    db = connect_to_db
+
+    begin
+      db.transaction
+
+      result = AnimeService.instance.modify_anime(db, anime)
+      return false unless result
+
+      if img['img_del'] == 'Y'
+        file = {}
+
+        file['refer_tb'] = img['content_type']
+        file['refer_id'] = img['content_id']
+
+        FileService.instance.delete_image_file(db, Files.new(file))
+      else
+        FileService.instance.modify_image_file(db, img)
+      end
+
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
+  end
+
+  def remove_anime(id, file)
+    db = connect_to_db
+
+    begin
+      db.transaction
+      AnimeService.instance.remove_anime(db, id)
+      FileService.instance.delete_image_file(db, file)
+      db.commit
+    rescue StandardError => e
+      db.rollback
+      return e.message
+    ensure
+      db.close
+    end
+
+    true
+  end
+
+  def recommend_anime
+    db = connect_to_db
+
+    begin
+      AnimeService.instance.recommend_anime(db)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
   end
 
 end
