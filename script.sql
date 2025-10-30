@@ -21,7 +21,7 @@ create table tb_anime_status
     id              integer             not null
         primary key autoincrement,
     anime_id        integer             not null,
-    current_episode integer default 1   not null,
+    current_episode integer default 0   not null,
     completion_date text,
     status          integer default 2   not null,
     use_yn          text    default 'Y' not null,
@@ -128,5 +128,4 @@ create table tb_map
     refer_tb text,
     refer_id integer
 );
-
 

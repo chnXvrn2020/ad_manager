@@ -6,6 +6,7 @@ require_relative 'view_search'
 class ViewIndex
   attr_reader :frame
 
+  # 初期設定
   def initialize(window, stack)
     @window = window
     @stack = stack
@@ -25,14 +26,16 @@ class ViewIndex
     @group_keyword = nil
     @keyword = nil
     @type = nil
-    @img_path = './files/akiba_images/'
+    @img_path = img_path
     @anime_stop = false
     @img = nil
+    @no_image = no_image_path
 
     set_ui
     set_signal_connect
   end
 
+  # UIの初期化
   def initialize_ui(data)
     @group_keyword = nil
     @keyword = nil
@@ -48,10 +51,9 @@ class ViewIndex
 
     clear_list_box(@data_list)
 
-    initialize_no_data
-    initialize_anime_data
-    initialize_book_data
+    initialize_frame
 
+    # 他のレイアウトから引数として渡されたデータの処理
     if data.is_a?(Integer)
       @content_id = data
       load_content_data(data)
@@ -64,14 +66,14 @@ class ViewIndex
 
   end
 
+  # 初期ウィンドウの設定
   def initialize_window
-    initialize_no_data
-    initialize_anime_data
-    initialize_book_data
+    initialize_frame
   end
 
   private
 
+  # UIの設定
   def set_ui
     @main_v_box = Gtk::Box.new(:vertical)
     @main_v_box.set_margin_start(30)
@@ -138,7 +140,9 @@ class ViewIndex
     bottom_btn_frame
   end
 
+  # ウィゼットの設定
   def set_signal_connect
+    # グループリストのダブルクリックイベント
     @group_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -155,6 +159,7 @@ class ViewIndex
       end
     end
 
+    # アニメ、書籍データのリストのダブルクリックイベント
     @data_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -171,6 +176,7 @@ class ViewIndex
       end
     end
 
+    # 原作コンボボックスの選択イベント
     @original_combo.signal_connect('changed') do |widget|
       @keyword = nil
 
@@ -185,6 +191,7 @@ class ViewIndex
       end
     end
 
+    # 検索ボタンのクリックイベント
     @search_btn.signal_connect('clicked') do
       view_search = ViewSearch.new(@window, @group_id)
 
@@ -192,6 +199,7 @@ class ViewIndex
         if response == Gtk::ResponseType::OK
           radio = view_search.radio_active
 
+          # ダイアログから渡された引数を元にデータを読み込む
           if radio == I18n.t('view.group')
             @group_keyword = view_search.keyword
             load_group_list
@@ -205,6 +213,7 @@ class ViewIndex
 
     end
 
+    # 現状態のチェックボタンのクリックイベント
     @status_check_btn.signal_connect('clicked') do
       if @type == 'tb_anime'
         check_anime_status
@@ -213,21 +222,25 @@ class ViewIndex
       end
     end
 
+    # 戻るボタンのクリックイベント
     @back_btn.signal_connect('clicked') do
       layout_changer = LayoutChanger.new
 
+      # HomeIndexへと切り替える
       layout_changer.change_layout(@stack, 0)
     end
   end
+
+  # コンボボックスの設定
 
   def set_combo_box
     text_renderer = Gtk::CellRendererText.new
     combo_model = Gtk::ListStore.new(String, Integer)
 
-    original = begin
-      @common_controller.get_type_menu('original')
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    original = @common_controller.get_type_menu('original')
+
+    if original.is_a?(String)
+      dialog_message(@window, :error, :db_error, original)
       return
     end
 
@@ -248,6 +261,7 @@ class ViewIndex
     @original_combo.active = 0
   end
 
+  # 何も選択されてない時のUI
   def no_data
     @no_data_main_box = Gtk::Box.new(:vertical)
     @no_data_main_box.set_size_request(600, 300)
@@ -259,6 +273,7 @@ class ViewIndex
     @status_check_btn.sensitive = false
   end
 
+  # アニメが選択された時のUI
   def anime_data
     @anime_main_box = Gtk::Box.new(:horizontal)
     @main_v_box.pack_start(@anime_main_box, expand: true)
@@ -393,7 +408,10 @@ class ViewIndex
     set_anime_connect
   end
 
+  # アニメUIのウィゼットの設定
   def set_anime_connect
+
+    # イメージのダブルクリックイベント
     @anime_img_event_box.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         next if @img.nil?
@@ -402,6 +420,7 @@ class ViewIndex
       end
     end
 
+    # 開始ボタンのクリックイベント
     @anime_start_btn.signal_connect('clicked') do
       con = confirm_dialog(:anime_start, @window)
       res = con.run
@@ -423,14 +442,16 @@ class ViewIndex
         anime_status_btn(status.status, status)
         load_group_list
         load_anime_list
-
       end
 
       con.destroy
     end
 
+    # 中止ボタンのクリックイベント
     @anime_stop_btn.signal_connect('clicked') do
       label = @anime_stop_btn.label
+
+      # 場合によって再開にもなる
       type = if label == I18n.t('view.stop_watching')
                :anime_stop
              elsif label == I18n.t('view.restart_watching')
@@ -459,6 +480,7 @@ class ViewIndex
       con.destroy
     end
 
+    # セーブボタンのクリックイベント
     @anime_save_btn.signal_connect('clicked') do
 
         current_episode = @anime_current_entry.text.to_i
@@ -469,6 +491,7 @@ class ViewIndex
 
     end
 
+    # コンプリボタンのクリックイベント
     @anime_complete_btn.signal_connect('clicked') do
       con = confirm_dialog(:anime_complete, @window)
       res = con.run
@@ -498,6 +521,7 @@ class ViewIndex
 
   end
 
+  # 書籍が選択された時のUI
   def book_data
     @book_main_box = Gtk::Box.new(:horizontal)
     @main_v_box.pack_start(@book_main_box, expand: true)
@@ -561,7 +585,10 @@ class ViewIndex
     set_book_connect
   end
 
+  # 書籍UIのウィゼットの設定
   def set_book_connect
+
+    # イメージのダブルクリックイベント
     @book_img_event_box.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         next if @img.nil?
@@ -570,6 +597,7 @@ class ViewIndex
       end
     end
 
+    # コンプリボタンのクリックイベント
     @book_complete_btn.signal_connect('clicked') do
       con = confirm_dialog(:anime_complete, @window)
       res = con.run
@@ -597,6 +625,7 @@ class ViewIndex
 
   end
 
+  # 下のボタンフレイムの設定
   def bottom_btn_frame
     @btn_h_box = Gtk::Box.new(:horizontal)
     @main_v_box.pack_start(@btn_h_box, expand: true)
@@ -606,18 +635,21 @@ class ViewIndex
     @btn_h_box.pack_start(@back_btn, expand: true)
   end
 
+  # イメージがない時の代替イメージ
   def no_image(img_box)
-    pixbuf = GdkPixbuf::Pixbuf.new(file: './assets/images/no_image_tate.jpg')
+    pixbuf = GdkPixbuf::Pixbuf.new(file: @no_image)
 
     set_image(pixbuf, img_box)
   end
 
+  # イメージを変換する
   def convert_image(file)
     return if file.nil?
 
     GdkPixbuf::Pixbuf.new(file: "#{@img_path}#{file.file_name}")
   end
 
+  # イメージをサイズに合わせて表示
   def set_image(pixbuf, img_box)
     return if pixbuf.nil?
 
@@ -643,18 +675,14 @@ class ViewIndex
     img_box.set_from_pixbuf(scaled_pixbuf)
   end
 
-  def initialize_no_data
+  # 初期フレイムの設定
+  def initialize_frame
     @no_data_main_box.visible = true
-  end
-
-  def initialize_anime_data
     @anime_main_box.visible = false
-  end
-
-  def initialize_book_data
     @book_main_box.visible = false
   end
 
+  # コンテンツデータの読み込み
   def load_content_data(data)
     result = @content_controller.get_one_content(data)
 
@@ -666,6 +694,7 @@ class ViewIndex
     @title_entry.text = result.name
   end
 
+  # グループリストの読み込み
   def load_group_list
     group = @group_controller.get_group_list_by_content_id(@content_id, @group_keyword)
 
@@ -687,6 +716,7 @@ class ViewIndex
         next
       end
 
+      # グループ名の後に状態を付与する
       status = group_status(group_status_info)
 
       row.add(Gtk::Label.new(data + status))
@@ -700,6 +730,7 @@ class ViewIndex
     @group_list.show_all
   end
 
+  # メニューのデータの読み込み
   def load_data(type_id)
     @type_id = type_id
     result = @common_controller.get_one_common(type_id)
@@ -712,26 +743,23 @@ class ViewIndex
     result
   end
 
+  # アニメ、書籍の情報の読み込み
   def db_data(common)
     return clear_list_box(@data_list) if common.nil?
 
-    begin
-      case common.name
-      when I18n.t('original.anime')
+    case common.name
+    when I18n.t('original.anime')
         load_anime_list
         @type = 'tb_anime'
-      when I18n.t('original.manga'), I18n.t('original.novel')
+    when I18n.t('original.manga'), I18n.t('original.novel')
         load_book_list
         @type = 'tb_book'
-      else
+    else
         clear_list_box(@data_list)
-      end
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
-      nil
     end
   end
 
+  # アニメリストの読み込み
   def load_anime_list
     anime = @anime_controller.get_anime_list(@group_id, @keyword)
 
@@ -742,6 +770,8 @@ class ViewIndex
 
     clear_list_box(@data_list)
 
+    # 文字列が長い場合、省略する
+    # タイトルの後に状態を付与する
     anime.each do |item|
       row = Gtk::ListBoxRow.new
       data = truncate_string(item.name, 'view')
@@ -758,6 +788,7 @@ class ViewIndex
     @data_list.show_all
   end
 
+  # 書籍リストの読み込み
   def load_book_list
     book = @book_controller.get_book_list(@type_id, @group_id, @keyword)
 
@@ -768,6 +799,8 @@ class ViewIndex
 
     clear_list_box(@data_list)
 
+    # 文字列が長い場合、省略する
+    # タイトルの後に状態を付与する
     book.each do |item|
       row = Gtk::ListBoxRow.new
       data = truncate_string(item.name, 'view')
@@ -784,6 +817,7 @@ class ViewIndex
     @data_list.show_all
   end
 
+  # 一つのアニメ情報の読み込み
   def load_anime_data
     data = @anime_controller.get_anime_info_by_id(@type, @id)
 
@@ -828,6 +862,7 @@ class ViewIndex
     @ratio_entry.text = ratio_arg.join(', ')
     @anime_episode_entry.text = anime.episode.to_s
 
+    # 状態ごとにボタンを切り替える
     if status.nil?
       @status_label.text = I18n.t('view.unwatched')
       @anime_current_entry.text = ''
@@ -842,6 +877,7 @@ class ViewIndex
     frame_changer(false, true, false)
   end
 
+  # 一つの書籍情報の読み込み
   def load_book_data
     data = @book_controller.get_book_info_by_id(@type, @id)
 
@@ -874,6 +910,7 @@ class ViewIndex
     @publisher_entry.text = publisher_arg.join(', ')
     @release_date_entry.text = book.created_date
 
+    # 状態ごとにボタンを切り替える
     if status.nil?
       @book_status_label.text = I18n.t('view.unwatched')
       @book_completed_entry.text = ''
@@ -889,12 +926,14 @@ class ViewIndex
     frame_changer(false, false, true)
   end
 
+  # フレイムの切り替え
   def frame_changer(no_data, anime, book)
     @no_data_main_box.visible = no_data
     @anime_main_box.visible = anime
     @book_main_box.visible = book
   end
 
+  # commonのデータの読み込み
   def load_common_data(id)
     common = @common_controller.get_one_common(id)
 
@@ -915,15 +954,19 @@ class ViewIndex
     common.name
   end
 
+  # 制作会社、出版社の情報の読み込み
   def load_company_data(id)
-    begin
-      @company_controller.get_one_company(id).name
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
-      nil
+    company = @company_controller.get_one_company(id)
+
+    if company.is_a?(String)
+      dialog_message(@window, :error, :db_error, company)
+      return nil
     end
+
+    company.name
   end
 
+  # グループ情報の読み込み
   def load_group_data
     group = @group_controller.get_one_group(@group_id)
 
@@ -932,10 +975,12 @@ class ViewIndex
       return
     end
 
+    # グループごとに原作を読み込み、付与する
     original = load_common_data(group.original)
     @original_label.text = "原作：#{original}"
   end
 
+  # アニメの状態のごとにボタンの切り替え
   def anime_status_btn(status_name, status = nil)
     @anime_stop_btn.label = I18n.t('view.stop_watching')
     @anime_current_entry.sensitive = false
@@ -986,6 +1031,7 @@ class ViewIndex
 
   end
 
+  # 初期データの読み込み
   def load_initial_data(data)
     @content_id = data[0]['content_id']
     load_content_data(data[0]['content_id'])
@@ -1016,6 +1062,7 @@ class ViewIndex
 
   end
 
+  # 現状態のチェックボタンの切り替え
   def status_check_btn(original_data)
     @status_check_btn.sensitive = if [7, 10].include?(original_data)
                                     false
@@ -1030,6 +1077,8 @@ class ViewIndex
                                   end
   end
 
+  # 現状態チェックの時、アニメの状態をチェック
+  # 残ったエピソードと現在のパーセントを表示する
   def check_anime_status
 
     current_episode = @anime_current_entry.text.to_i
@@ -1046,6 +1095,8 @@ class ViewIndex
     dialog_message(@window, :custom, nil, nil, custom)
   end
 
+  # 現状態チェックの時、書籍の状態をチェック
+  # 残った書籍の数と現在のパーセントを表示する
   def check_book_status
 
     completed_count = @book_controller.get_completed_book_count_by_group_id(@type_id, @group_id)

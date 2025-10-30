@@ -1,25 +1,34 @@
 # frozen_string_literal: true
 
+# ファイルパスの取得
 def img_path
   './files/akiba_images/'
 end
 
+def no_image_path
+  './assets/images/no_image_tate.jpg'
+end
+
+# 現在時刻の取得
 def current_datetime
   Time.now.strftime('%Y-%m-%d %H:%M:%S')
 end
 
+# 現在日付の取得
 def current_date
   Time.now.strftime('%Y-%m-%d')
 end
 
+# ファイル名の為の日付の取得
 def file_datetime
   Time.now.strftime('%Y%m%d%H%M%S')
 end
 
-# オーバーフロアの処理
+# テキストのオーバーフロア処理
 def truncate_string(string, type)
   uni_byte = 4
 
+  # 画面ごとに長さを変える
   max_length = case type
                when 'manage'
                  uni_byte * 20
@@ -30,6 +39,7 @@ def truncate_string(string, type)
   current_length = 0
   result = String.new
 
+  # 文字列をchar単位で処理して、長さを調整する
   string.each_char do |char|
     char_length = char.bytesize == 1 ? 2 : 4
 
@@ -46,6 +56,7 @@ def truncate_string(string, type)
 
 end
 
+# ラジオボタンの値を返す
 def radio_to_type(text)
   case text
   when I18n.t('radio_menu.content')
@@ -67,26 +78,15 @@ def radio_to_type(text)
   end
 end
 
-def content_sort(hash)
-  regex = /(.*?)\s\d+$/
-
-  hash.map!
-
-  hash.sort_by! do |h|
-    key = h['name'].scan(regex)
-    key = key.empty? ? [h['name']] : [key.first.join]
-    key << h['created_date']
-    key
-  end
-
-end
-
+# リストボックスの内容をクリアする
 def clear_list_box(list_box)
   list_box.children.each { |row| list_box.remove(row) }
 end
 
+# メッセージを表示する
 def dialog_message(parent, dialog_type, type, error = nil, custom = nil)
 
+  # 状態ごとに分岐する
   dialog_title = case dialog_type
                  when :error
                    message = error_dialog(type, error)
@@ -107,6 +107,7 @@ def dialog_message(parent, dialog_type, type, error = nil, custom = nil)
                                   buttons_type: :ok, message: message)
   dialog.set_title(dialog_title)
 
+  # 確認ボタン
   dialog.action_area.children.each do |button|
     button.label = "#{I18n.t('confirm.confirm')}(_O)"
   end
@@ -121,10 +122,12 @@ def dialog_message(parent, dialog_type, type, error = nil, custom = nil)
 
 end
 
+# 警告音を鳴らす
 def play_warning_sound
   Win32::MessageBeep(0x00000030)
 end
 
+# エラーメッセージの取得
 def error_dialog(type, error)
   case type
   when :db_error
@@ -140,6 +143,7 @@ def error_dialog(type, error)
   end
 end
 
+# 警告メッセージの取得
 def warning_dialog(type)
   case type
   when :empty_entry
@@ -171,6 +175,7 @@ def warning_dialog(type)
   end
 end
 
+# アラートメッセージの取得
 def alert_dialog(type)
   case type
   when :write_success
@@ -181,9 +186,12 @@ def alert_dialog(type)
     I18n.t('alert.remove_success')
   when :anime_save
     I18n.t('anime_status.save')
+  when :developing
+    I18n.t('alert.developing')
   end
 end
 
+# 確認メッセージの取得
 def confirm_dialog(type, parent)
   message = case type
             when :remove_confirm
@@ -205,12 +213,6 @@ def confirm_dialog(type, parent)
   confirm = Gtk::MessageDialog.new(parent: parent, flags: :destroy_with_parent, type: :question,
                                    buttons_type: :yes_no, message: message)
   confirm.set_title(I18n.t('confirm.confirm_title'))
-
-  confirm.action_area.children.each do |button|
-    button.label = "#{I18n.t('confirm.confirm')}(_Y)" if button.label == '예(_Y)'
-    button.label = "#{I18n.t('confirm.cancel')}(_N)" if button.label == '아니요(_N)'
-  end
-
   confirm.set_position(Gtk::WindowPosition::CENTER)
   confirm.show_all
 
@@ -219,6 +221,7 @@ def confirm_dialog(type, parent)
   confirm
 end
 
+# 制作会社、出版社の選択
 def company_selector(company_selector)
   ides = []
 
@@ -235,6 +238,7 @@ def company_selector(company_selector)
   ides
 end
 
+# コンボボックスの選択
 def combo_selector(arr)
   arr.each do |hash|
     hash['combo_box'].model.each do |model, path, iter|
@@ -246,8 +250,9 @@ def combo_selector(arr)
   end
 end
 
+# ファイルのアップロード
 def file_upload(img_file_name, content_type, last_id)
-  img_path = './files/akiba_images/'
+  path = img_path
 
   return nil if img_file_name.nil?
 
@@ -258,18 +263,19 @@ def file_upload(img_file_name, content_type, last_id)
                '.jpg'
              end
 
-  FileUtils.cp(img_file_name, "#{img_path}#{date}#{downcase}")
+  FileUtils.cp(img_file_name, "#{path}#{date}#{downcase}")
 
   files = {}
 
   files['refer_tb'] = content_type
   files['refer_id'] = last_id
-  files['file_name'] = File.basename("#{img_path}#{date}#{downcase}")
+  files['file_name'] = File.basename("#{path}#{date}#{downcase}")
 
   files
 end
 
-#  return 1 : complete or watching, 0 : not watching
+## 推薦のための現状態の判定
+# 1はコンプリ又は進行中、0は未コンプリ
 def status_loop(rows)
   complete_count = 0
 
@@ -277,9 +283,7 @@ def status_loop(rows)
     return 0 if row['status'].nil?
     return 1 if row['status'] == 2 || row['status'] == 3
 
-    if row['status'] == 32
-      complete_count += 1
-    end
+    complete_count += 1 if row['status'] == 32
 
   end
 
@@ -290,6 +294,7 @@ def status_loop(rows)
   end
 end
 
+# 推薦のためのグループ状態の判定
 def group_status(group_status_info)
 
   anime_status = group_status_info['anime']
@@ -298,6 +303,7 @@ def group_status(group_status_info)
 
   status = "　（#{I18n.t('view.unwatched')}）"
 
+  # アニメの状態の判定
   anime_status.each_with_index do |anime, i|
     break if anime.status.nil? && (i <= 0)
 
@@ -314,6 +320,7 @@ def group_status(group_status_info)
     status = "　（#{I18n.t('view.completed')}）" if (anime.status == 32) && (anime_status.length == i + 1)
   end
 
+  # 書籍の状態の判定
   book_status.each_with_index do |book, i|
     break if book.status.nil? && (i <= 0)
 
@@ -325,6 +332,7 @@ def group_status(group_status_info)
 
 end
 
+# dbに使うマップの作成
 def create_map(param)
   Map.new({'from_tb' => param[:from_tb],
            'from_id' => param[:from_id],

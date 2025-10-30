@@ -8,7 +8,7 @@ class BookMapper
   def select_book_list(db, type, group_id, keyword = nil)
 
     sql = <<~SQL
-      SELECT tb.id, tb.name, ifnull(tc.name, '未鑑賞') AS status
+      SELECT tb.id, tb.name, tc.name AS status
       FROM tb_book tb
          LEFT JOIN tb_map g ON g.refer_tb = 'tb_book' AND g.refer_id = tb.id
          LEFT JOIN tb_book_status tbs ON tb.id = tbs.book_id
@@ -27,8 +27,14 @@ class BookMapper
 
     sql += ' ORDER BY tb.created_date'
 
-    db.execute(sql, args)
+    result = db.execute(sql, args)
 
+    result.map do |row|
+      row['status'] = I18n.t('view.unwatched') if row['status'].nil?
+      row
+    end
+
+    result
   end
 
   def select_book_count_by_group_id(db, type, group_id)
@@ -88,7 +94,6 @@ class BookMapper
   end
 
   def select_all(db, type, page, keyword = nil, status = nil)
-    numeric_sort(db)
 
     sql = <<~SQL
       SELECT tb.id, tb.name
@@ -101,7 +106,7 @@ class BookMapper
     args = [type]
 
     unless keyword.nil?
-      sql += ' AND name LIKE ?'
+      sql += ' AND tb.name LIKE ?'
       args << "%#{keyword}%"
     end
 
@@ -113,9 +118,9 @@ class BookMapper
            when 3
              ' GROUP BY tb.id, tb.name
                HAVING COUNT(tb.id) > (SELECT COUNT(tbs.id))
-               ORDER BY numeric_sort(tb.name)'
+               ORDER BY tb.created_date, tb.name'
            else
-             ' ORDER BY numeric_sort(name)'
+             ' ORDER BY tb.created_date, tb.name'
            end
 
     sql += ' LIMIT ? OFFSET ?'

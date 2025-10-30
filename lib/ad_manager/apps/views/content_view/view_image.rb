@@ -4,6 +4,7 @@ require 'gtk3'
 
 class ViewImage < Gtk::Dialog
 
+  # 初期設定
   def initialize(parent, img)
     super(title: I18n.t('image.title'), parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -14,7 +15,7 @@ class ViewImage < Gtk::Dialog
     self.resizable = false
 
     @img = img
-    @img_path = './files/akiba_images/'
+    @img_path = img_path
 
     set_ui
     set_signal_connect
@@ -24,6 +25,7 @@ class ViewImage < Gtk::Dialog
 
   private
 
+  # UIの設定
   def set_ui
     h_box = Gtk::Box.new(:horizontal)
     child.pack_start(h_box)
@@ -45,13 +47,16 @@ class ViewImage < Gtk::Dialog
     set_image(img)
   end
 
+  # ウィゼットの設定
   def set_signal_connect
+    # 閉じるボタンのイベント
     @close_btn.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
       destroy
     end
   end
 
+  # 画像の設定
   def set_image(pixbuf)
     return if pixbuf.nil?
 

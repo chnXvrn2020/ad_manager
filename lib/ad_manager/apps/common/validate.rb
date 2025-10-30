@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# アニメ情報の検証
 def anime_validation
   anime = {}
 
@@ -38,6 +39,7 @@ def anime_validation
   anime
 end
 
+# 読書情報の検証
 def book_validation
   book = {}
 

@@ -5,6 +5,7 @@ require_relative 'table_search'
 class TableIndex
   attr_reader :frame
 
+  # 初期化
   def initialize(window, stack)
     @window = window
     @stack = stack
@@ -15,12 +16,14 @@ class TableIndex
 
   end
 
+  # UIの初期化
   def initialize_ui(id)
 
   end
 
   private
 
+  # UIの設定
   def set_ui
     @main_v_box = Gtk::Box.new(:vertical)
     @main_v_box.set_margin_start(30)
@@ -52,6 +55,7 @@ class TableIndex
     btn_h_box.pack_start(@back_btn, expand: true)
   end
 
+  # ウィゼットの設定
   def set_signal_connect
     @search_btn.signal_connect('clicked') do
       table_search = TableSearch.new(@window, I18n.t('menu.search'))

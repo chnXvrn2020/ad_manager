@@ -7,6 +7,7 @@ require_relative 'company_edit'
 
 class CompanyIndex < Gtk::Dialog
 
+  # 初期化
   def initialize(parent, type, company_id)
     super(title: type.label.to_s + I18n.t('menu.config'), parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -29,6 +30,8 @@ class CompanyIndex < Gtk::Dialog
   end
 
   private
+
+  # UIの設定
   def set_ui
 
     label_box = Gtk::Box.new(:horizontal)
@@ -68,10 +71,10 @@ class CompanyIndex < Gtk::Dialog
 
   end
 
+  # ウィゼットの設定
   def set_signal_connect
 
-    ##
-    # ボタンのコネクト
+    # 追加ボタンのクリックイベント
     @add_btn.signal_connect('clicked') do
       company_edit = CompanyEdit.new(self, @add_btn.label, @type.label, @company_id)
 
@@ -80,6 +83,7 @@ class CompanyIndex < Gtk::Dialog
       end
     end
 
+    # 検索ボタンのクリックイベント
     @search_btn.signal_connect('clicked') do
       company_edit = CompanyEdit.new(self, @search_btn.label, @type.label, @company_id)
 
@@ -89,6 +93,7 @@ class CompanyIndex < Gtk::Dialog
       end
     end
 
+    # 削除ボタンのクリックイベント
     @delete_btn.signal_connect('clicked') do
       con = confirm_dialog(:remove_confirm, self)
       res = con.run
@@ -110,13 +115,13 @@ class CompanyIndex < Gtk::Dialog
       con.destroy
     end
 
+    # 閉じるボタンのクリックイベント
     @close_btn.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
       destroy
     end
 
-    ##
-    # リストのコネクト
+    # リストのダブルクリックイベント
     @list_widget.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -136,21 +141,24 @@ class CompanyIndex < Gtk::Dialog
 
   end
 
+  # 制作会社、出版社の情報の読み込み
   def load_company_data
     clear_list_box(@list_widget)
 
-    company = begin
-      @controller.get_company_group(@company_id, @keyword)
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
+    company = @controller.get_company_group(@company_id, @keyword)
+
+    if company.is_a?(String)
+      dialog_message(self, :error, :db_error, company)
       return
     end
 
+    # 会社のリストを表示
     company.each do |item|
       @label.set_markup("<span font='25'>#{item.name}</span>") if item.id == @company_id
       row = Gtk::ListBoxRow.new
       postfix = ''
 
+      # メインの会社の場合、メインだと表示
       postfix = I18n.t('company.current_use') if item.current_yn == 'Y'
 
       row.add(Gtk::Label.new(item.name + postfix))

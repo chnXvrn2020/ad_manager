@@ -7,6 +7,7 @@ class CompanyEdit < Gtk::Dialog
 
   attr_reader :keyword
 
+  # 初期化
   def initialize(parent, menu, type, id)
     super(title: menu, parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -30,6 +31,7 @@ class CompanyEdit < Gtk::Dialog
 
   private
 
+  # UIの設定
   def set_ui
 
     h_box = Gtk::Box.new(:horizontal)
@@ -45,6 +47,7 @@ class CompanyEdit < Gtk::Dialog
 
     @type = radio_to_type(@type)
 
+    # 機能によって分岐する
     case @menu
     when I18n.t('menu.add')
       add_ui
@@ -62,18 +65,21 @@ class CompanyEdit < Gtk::Dialog
     end
   end
 
+  # 追加のUIの設定
   def add_ui
     @add_button = Gtk::Button.new(label: I18n.t('menu.add'))
     @add_button.set_size_request(270, 50)
     @btn_box.pack_start(@add_button, expand: true)
   end
 
+  # 検索のUIの設定
   def search_ui
     @search_button = Gtk::Button.new(label: I18n.t('menu.search'))
     @search_button.set_size_request(270, 50)
     @btn_box.pack_start(@search_button, expand: true)
   end
 
+  # 更新のUIの設定
   def modify_ui
     @modify_button = Gtk::Button.new(label: I18n.t('menu.modify'))
     @modify_button.set_size_request(150, 50)
@@ -88,12 +94,15 @@ class CompanyEdit < Gtk::Dialog
     @btn_box.pack_start(@remove_button, expand: true)
   end
 
+  # 閉じるボタンのUIの設定
   def close_btn_ui
     @close_button = Gtk::Button.new(label: I18n.t('menu.close'))
     @close_button.set_size_request(270, 50)
     @btn_box.pack_start(@close_button, expand: true)
   end
 
+  # 各種ウィゼットの設定
+  # 閉じるボタンのイベントの設定
   def set_signal_connect
     @close_button.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
@@ -101,7 +110,9 @@ class CompanyEdit < Gtk::Dialog
     end
   end
 
+  # 追加UIのウィゼットのイベント設定
   def set_add_widgets_connect
+    # 追加ボタンのイクリックイベント
     @add_button.signal_connect('clicked') do
       next if @type.nil?
 
@@ -110,6 +121,7 @@ class CompanyEdit < Gtk::Dialog
         next
       end
 
+      # 引数を一つの束ねる
       company = { 'type' => @type, 'name' => @entry.text.to_s.strip, 'parent_id' => @id }
 
       success = @controller.add_child_company(Company.new(company))
@@ -131,7 +143,9 @@ class CompanyEdit < Gtk::Dialog
     end
   end
 
+  # 検索UIのウィゼットのイベント設定
   def set_search_widgets_connect
+    # 検索ボタンのイクリックイベント
     @search_button.signal_connect('clicked') do
       next if @type.nil?
 
@@ -147,10 +161,9 @@ class CompanyEdit < Gtk::Dialog
     end
   end
 
+  # 更新UIのウィゼットのイベント設定
   def set_modify_widgets_connect
-
-    ##
-    # ボタンのコネクト
+    # 更新ボタンのイクリックイベント
     @modify_button.signal_connect('clicked') do
       next if @type.nil?
 
@@ -159,6 +172,7 @@ class CompanyEdit < Gtk::Dialog
         next
       end
 
+      # 引数を一つの束ねる
       company = { 'id' => @id, 'type' => @type, 'name' => @entry.text.to_s.strip }
 
       result = @controller.modify_one_company(Company.new(company))
@@ -176,6 +190,7 @@ class CompanyEdit < Gtk::Dialog
       end
     end
 
+    # メインの会社に変更するボタンのイクリックイベント
     @change_button.signal_connect('clicked') do
       result = @controller.change_current_yn(@id)
 
@@ -190,6 +205,7 @@ class CompanyEdit < Gtk::Dialog
       dialog_message(self, :info, :modify_success)
     end
 
+    # 削除ボタンのイクリックイベント
     @remove_button.signal_connect('clicked') do
       con = confirm_dialog(:remove_confirm, self)
       res = con.run
@@ -212,6 +228,7 @@ class CompanyEdit < Gtk::Dialog
 
   end
 
+  # 制作会社、出版社の情報の読み込み
   def load_data
     return if @id.nil?
 

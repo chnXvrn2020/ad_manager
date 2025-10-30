@@ -8,6 +8,7 @@ class ImageEdit < Gtk::Dialog
 
   attr_reader :img, :file_name, :img_del
 
+  # 初期化
   def initialize(parent, type, id = nil, img = nil, del = nil)
     super(title: I18n.t('image.title'), parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -26,8 +27,8 @@ class ImageEdit < Gtk::Dialog
     @changed = false
     @img_del = del
     @controller = FileController.new
-    @img_path = './files/akiba_images/'
-    @no_image = './assets/images/no_image_tate.jpg'
+    @img_path = img_path
+    @no_image = no_image_path
 
     set_ui
     set_signal_connect
@@ -35,6 +36,7 @@ class ImageEdit < Gtk::Dialog
     show_all
   end
 
+  # UIの設定
   def set_ui
     h_box = Gtk::Box.new(:horizontal)
     child.pack_start(h_box)
@@ -43,6 +45,7 @@ class ImageEdit < Gtk::Dialog
     @image.set_size_request(500, 650)
     h_box.pack_start(@image, expand: true)
 
+    # 画像のデータによっての分岐
     if @img.nil?
       img = get_db_image
 
@@ -71,11 +74,14 @@ class ImageEdit < Gtk::Dialog
     btn_box.pack_start(@close_btn, expand: true)
   end
 
+  # ウィゼットの設定
   def set_signal_connect
+    # 画像の設定ボタンのクリックイベント
     @image_btn.signal_connect('clicked') do
       load_image_file
     end
 
+    # 画像削除ボタンのクリックイベント
     @delete_btn.signal_connect('clicked') do
       no_image
 
@@ -83,6 +89,7 @@ class ImageEdit < Gtk::Dialog
       @changed = true
     end
 
+    # 閉じるボタンのクリックイベント
     @close_btn.signal_connect('clicked') do
       response(Gtk::ResponseType::OK) if @changed
       response(Gtk::ResponseType::CANCEL) unless @changed
@@ -91,6 +98,7 @@ class ImageEdit < Gtk::Dialog
     end
   end
 
+  # 画像がない時の処理
   def no_image
     @img = nil
 
@@ -99,6 +107,7 @@ class ImageEdit < Gtk::Dialog
     set_image(pixbuf)
   end
 
+  # 画像の設定
   def set_image(pixbuf)
     return if pixbuf.nil?
 
@@ -126,6 +135,7 @@ class ImageEdit < Gtk::Dialog
     @image.set_from_pixbuf(scaled_pixbuf)
   end
 
+  # DBから画像を取得
   def get_db_image
 
     file = @controller.get_image_info(@type, @id)
@@ -143,6 +153,7 @@ class ImageEdit < Gtk::Dialog
     end
   end
 
+  # 画像の選択
   def load_image_file
     file_dialog = Gtk::FileChooserDialog.new(:title => I18n.t('image.select'),
                                              :action => :open,

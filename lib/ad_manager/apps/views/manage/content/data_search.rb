@@ -6,6 +6,7 @@ class DataSearch < Gtk::Dialog
 
   attr_reader :keyword
 
+  # 初期化
   def initialize(parent, menu)
     super(title: menu, parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -25,6 +26,7 @@ class DataSearch < Gtk::Dialog
 
   private
 
+  # UIの設定
   def set_ui
 
     h_box = Gtk::Box.new(:horizontal)
@@ -47,8 +49,9 @@ class DataSearch < Gtk::Dialog
     btn_box.pack_start(@close_button, expand: true)
   end
 
+  # ウィゼットの設定
   def set_signal_connect
-
+    # 検索ボタンのクリックイベント
     @search_button.signal_connect('clicked') do
       if @entry.text.to_s.strip.empty?
         dialog_message(self, :warning, :empty_entry)
@@ -63,6 +66,7 @@ class DataSearch < Gtk::Dialog
       destroy
     end
 
+    # リターンキーを押すときに、検索ボタンをクリックする
     signal_connect('key_press_event') do |widget, event|
       if event.keyval == Gdk::Keyval::KEY_Return ||
         event.keyval == Gdk::Keyval::KEY_KP_Enter
@@ -73,6 +77,7 @@ class DataSearch < Gtk::Dialog
       false
     end
 
+    # 閉じるボタンのクリックイベント
     @close_button.signal_connect('clicked') do
       response(Gtk::ResponseType::CANCEL)
       destroy

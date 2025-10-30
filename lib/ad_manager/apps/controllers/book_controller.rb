@@ -2,6 +2,7 @@
 
 class BookController
 
+  # 書籍情報をリストとして呼び出す
   def get_book_list(type, group_id, keyword = nil)
     db = connect_to_db
 
@@ -22,6 +23,7 @@ class BookController
     book
   end
 
+  # 書籍のカウントを呼び出す
   def get_book_count_by_group_id(type, group_id)
     db = connect_to_db
 
@@ -34,6 +36,7 @@ class BookController
     end
   end
 
+  # 未選択書籍のリストを呼び出す
   def get_unselected_book_list(type, group_id, keyword = nil)
     db = connect_to_db
 
@@ -54,6 +57,7 @@ class BookController
     book
   end
 
+  # 書籍をIDで呼び出す
   def get_book_by_id(id)
     db = connect_to_db
     data = begin
@@ -67,6 +71,7 @@ class BookController
     Book.new(data[0])
   end
 
+  # 書籍情報をIDで呼び出す
   def get_book_info_by_id(type, id)
     db = connect_to_db
 
@@ -84,6 +89,7 @@ class BookController
     book_info
   end
 
+  # 書籍をカウントとともに呼び出す
   def get_book_list_with_count(type, current_page = 1, keyword = nil, status = nil)
     db = connect_to_db
 
@@ -96,6 +102,7 @@ class BookController
     end
   end
 
+  # コンプリ書籍のカウントを呼び出す
   def get_completed_book_count_by_group_id(type, group_id)
     db = connect_to_db
 
@@ -108,6 +115,7 @@ class BookController
     end
   end
 
+  # 書籍情報を追加する
   def add_book(param)
     db = connect_to_db
 
@@ -132,6 +140,7 @@ class BookController
     true
   end
 
+  # 書籍情報を変更する
   def modify_book(book)
     db = connect_to_db
 
@@ -141,6 +150,8 @@ class BookController
       result = BookService.instance.modify_book(db, book)
       return false unless result
 
+      # 画像の変更
+      # 画像が削除された場合はファイルを削除する
       if img['img_del'] == 'Y'
         file = {}
 
@@ -163,6 +174,7 @@ class BookController
     true
   end
 
+  # 書籍情報を削除する
   def remove_book(id, file)
     db = connect_to_db
 
@@ -181,6 +193,7 @@ class BookController
     true
   end
 
+  # 書籍をグループに紐づける
   def set_mapping_book(group_id, book_id)
     db = connect_to_db
 
@@ -195,6 +208,7 @@ class BookController
     true
   end
 
+  # 書籍をグループから削除する
   def remove_mapping_book(group_id, book_id)
     db = connect_to_db
 
@@ -209,6 +223,7 @@ class BookController
     true
   end
 
+  # 完読した書籍を追加する
   def complete_read_book(id, completion_date = nil)
     db = connect_to_db
 
@@ -225,6 +240,7 @@ class BookController
     Book.new(data[0])
   end
 
+  # 書籍を推薦する
   def recommend_book(type_id)
     db = connect_to_db
 

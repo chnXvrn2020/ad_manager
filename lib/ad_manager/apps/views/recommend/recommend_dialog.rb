@@ -7,6 +7,7 @@ class RecommendDialog < Gtk::Dialog
 
   attr_reader :data
 
+  # 初期化
   def initialize(parent)
     super(title: I18n.t('recommend.title'), parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -34,6 +35,7 @@ class RecommendDialog < Gtk::Dialog
     set_visible(true, false, false)
   end
 
+  # UIの設定
   def set_ui
     h_box = Gtk::Box.new(:horizontal)
     child.pack_start(h_box)
@@ -72,6 +74,7 @@ class RecommendDialog < Gtk::Dialog
     book_recommend
   end
 
+  # 無効なデータの場合のUIの設定
   def no_recommend
     @no_recommend_main_box = Gtk::Box.new(:vertical)
     @main_v_box.pack_start(@no_recommend_main_box, expand: true)
@@ -80,6 +83,7 @@ class RecommendDialog < Gtk::Dialog
     @no_recommend_main_box.pack_start(@no_recommend_label)
   end
 
+  # アニメが選択された時のUIの設定
   def anime_recommend
     @anime_recommend_main_box = Gtk::Box.new(:vertical)
     @main_v_box.pack_start(@anime_recommend_main_box, expand: true)
@@ -112,6 +116,7 @@ class RecommendDialog < Gtk::Dialog
     @anime_recommend_main_box.pack_start(@anime_data)
   end
 
+  # 書籍が選択された時のUIの設定
   def book_recommend
     @book_recommend_main_box = Gtk::Box.new(:vertical)
     @main_v_box.pack_start(@book_recommend_main_box, expand: true)
@@ -135,38 +140,44 @@ class RecommendDialog < Gtk::Dialog
     @book_recommend_main_box.pack_start(@book_group_data)
   end
 
+  # UIフレイムの表示・非表示の切り替え
   def set_visible(no, anime, book)
     @no_recommend_main_box.visible = no
     @anime_recommend_main_box.visible = anime
     @book_recommend_main_box.visible = book
   end
 
+  # UIウィゼットの設定
   def set_signal_connect
+    # 推薦ボタンのクリックイベント
     @recommend_button.signal_connect('clicked') do
       recommend_data
     end
 
+    # 詳細ボタンのクリックイベント
     @detail_button.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
       destroy
     end
 
+    # 閉じるボタンのクリックイベント
     @close_button.signal_connect('clicked') do
       response(Gtk::ResponseType::CANCEL)
       destroy
     end
   end
 
+  # コンボボックスの設定
   def set_combo_box
     text_renderer = Gtk::CellRendererText.new
     combo_model = Gtk::ListStore.new(String, Integer)
 
-    original = begin
-                 @common_controller.get_type_menu('original')
-               rescue StandardError => e
-                 dialog_message(@window, :error, :db_error, e.message)
-                 return
-               end
+    original = @common_controller.get_type_menu('original')
+
+    if original.is_a?(String)
+       dialog_message(@window, :error, :db_error, original)
+       return
+    end
 
     primary = combo_model.append
     primary[0] = I18n.t('menu.original')
@@ -185,9 +196,11 @@ class RecommendDialog < Gtk::Dialog
     @original_combo.active = 0
   end
 
+  # 推薦ボタンのクリックイベントの処理
   def recommend_data
     @type_id = @original_combo.active_iter[1]
 
+    # 種別によって分岐する
     case @type_id
     when 7
       recommend_anime
@@ -202,6 +215,7 @@ class RecommendDialog < Gtk::Dialog
     end
   end
 
+  # アニメ推薦の処理
   def recommend_anime
     set_visible(false, true, false)
     @data = [{}]
@@ -228,6 +242,7 @@ class RecommendDialog < Gtk::Dialog
     @data[0]['type_id'] = @type_id
   end
 
+  # 書籍推薦の処理
   def recommend_book
     set_visible(false, false, true)
     @data = [{}]

@@ -9,6 +9,7 @@ require 'gtk3'
 
 class DataSelector < Gtk::Dialog
 
+  # 初期化
   def initialize(parent, content_type, original, id)
     super(title: '', parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -35,10 +36,12 @@ class DataSelector < Gtk::Dialog
     show_all
   end
 
+  # commonのデータを取得
   def load_common_data
     @common_controller.get_one_common(@original)
   end
 
+  # UIの初期化
   def set_ui
     h_box = Gtk::Box.new(:horizontal)
     child.pack_start(h_box, padding: 10)
@@ -90,7 +93,9 @@ class DataSelector < Gtk::Dialog
     btn_h_box.pack_start(@close_button, expand: true)
   end
 
+  # ウィゼットの設定
   def set_signal_connect
+    # アニメ、書籍リストのダブルクリックイベント
     @data_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -102,10 +107,12 @@ class DataSelector < Gtk::Dialog
       end
     end
 
+    # 選択されてるリストのダブルクリックイベント
     @selected_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
 
+        # 選択されたデータを解除する
         if selected_row
           item = selected_row.name.to_i
           remove_selected_data(widget, item, selected_row)
@@ -113,6 +120,7 @@ class DataSelector < Gtk::Dialog
       end
     end
 
+    # 検索ボタンのクリックイベント
     @search_btn.signal_connect('clicked') do
       data_search = DataSearch.new(self, @search_btn.label)
 
@@ -125,12 +133,14 @@ class DataSelector < Gtk::Dialog
       end
     end
 
+    # 閉じるボタンのイベント
     @close_button.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
       destroy
     end
   end
 
+  # 選択されてないデータの読み込み
   def load_data
     clear_list_box(@data_list)
 
@@ -158,6 +168,7 @@ class DataSelector < Gtk::Dialog
     @data_list.show_all
   end
 
+  # 選択されてるデータの読み込み
   def load_selected_data
     clear_list_box(@selected_list)
 
@@ -185,6 +196,8 @@ class DataSelector < Gtk::Dialog
     @selected_list.show_all
   end
 
+  # 選択されてないリストからダブルクリックするときの処理
+
   def add_data(widget, item, selected_row)
     result = if @common.name == I18n.t('original.anime')
                @anime_controller.set_mapping_anime(@id, item)
@@ -208,6 +221,7 @@ class DataSelector < Gtk::Dialog
     widget.remove(selected_row)
   end
 
+  # 選択されてるリストからダブルクリックするときの処理
   def remove_selected_data(widget, item, selected_row)
     result = if @common.name == I18n.t('original.anime')
                @anime_controller.remove_mapping_anime(@id, item)

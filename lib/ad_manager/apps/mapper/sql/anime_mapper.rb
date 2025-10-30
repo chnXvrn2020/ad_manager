@@ -8,7 +8,7 @@ class AnimeMapper
   def select_anime_list_by_group_id(db, group_id, keyword = nil)
 
     sql = <<~SQL
-      SELECT ta.id, ta.name, ifnull(tc.name, '未鑑賞') AS status
+      SELECT ta.id, ta.name, tc.name AS status
       FROM tb_anime ta
          LEFT JOIN tb_map g ON g.refer_tb = 'tb_anime' AND g.refer_id = ta.id
          LEFT JOIN tb_anime_status tas ON ta.id = tas.anime_id
@@ -26,8 +26,14 @@ class AnimeMapper
 
     sql += ' ORDER BY ta.created_date'
 
-    db.execute(sql, args)
+    result = db.execute(sql, args)
 
+    result.map do |row|
+      row['status'] = I18n.t('view.unwatched') if row['status'].nil?
+      row
+    end
+
+    result
   end
 
   def select_unselected_anime_list_by_group_id(db, group_id, keyword = nil)
@@ -69,7 +75,6 @@ class AnimeMapper
   end
 
   def select_all(db, page, keyword = nil, status = nil)
-    numeric_sort(db)
 
     sql = <<~SQL
       SELECT ta.id, ta.name
@@ -409,6 +414,18 @@ class AnimeMapper
     args = [group_id]
 
     db.execute(sql, args)
+  end
+
+  def select_anime_year_group(db)
+    sql = <<~SQL
+      SELECT DISTINCT SUBSTR(created_date, 1, 3) AS decade
+      FROM tb_anime
+      WHERE use_yn = 'Y'
+      ORDER BY SUBSTR(created_date, 1, 3)
+    SQL
+
+    result = db.execute(sql)
+    result.map { |row| { 'year_group' => "#{row['decade']}0年代" } }
   end
 
 end

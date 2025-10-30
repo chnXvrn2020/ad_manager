@@ -7,6 +7,7 @@ require_relative 'company/company_index'
 class ManageIndex
   attr_reader :frame
 
+  # 初期化
   def initialize(window, stack)
     @window = window
     @stack = stack
@@ -25,6 +26,7 @@ class ManageIndex
     set_signal_connect
   end
 
+  # UIの初期化
   def initialize_ui(_id = nil)
     @radio_active = @radio_btn[0] if @radio_active.nil?
     @keyword = nil
@@ -33,8 +35,8 @@ class ManageIndex
 
   private
 
+  # UIの設定
   def set_ui
-
     main_v_box = Gtk::Box.new(:vertical)
     main_v_box.set_margin_start(50)
     main_v_box.set_margin_end(50)
@@ -118,10 +120,11 @@ class ManageIndex
 
   end
 
+  # ウィゼットの設定
   def set_signal_connect
     layout_changer = LayoutChanger.new
 
-    # リストデータのダブルクリックのイベント
+    # リストのダブルクリックイベント
     @list_widget.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -129,8 +132,10 @@ class ManageIndex
         if selected_row
           item = selected_row.name.to_i
 
+          # 各種ごとに分岐する
           result = case @radio_active.label
                    when I18n.t('radio_menu.content')
+                     # ContentIndexへと切り替える
                      layout_changer.change_layout(@stack, 2, item)
                      nil
                    when I18n.t('radio_menu.studio'), I18n.t('radio_menu.publisher')
@@ -139,6 +144,7 @@ class ManageIndex
                      CommonEdit.new(@window, I18n.t('menu.modify'), @radio_active, item)
                    end
 
+          # nilじゃない場合、新しいダイアログを表示する
           result&.signal_connect('response') do |widget, response|
             load_data if response == Gtk::ResponseType::OK
           end
@@ -146,7 +152,7 @@ class ManageIndex
       end
     end
 
-    # ラジオボタンクリックイベント
+    # ラジオボタンのクリックイベント
     @radio_btn.each do |radio|
       radio.signal_connect('toggled') do
         if radio.active?
@@ -159,13 +165,16 @@ class ManageIndex
       end
     end
 
-    # 登録ボタンのイベント
+    # 登録ボタンのクリックイベント
     @add_btn.signal_connect('clicked') do
       common_edit = CommonEdit.new(@window, @add_btn.label, @radio_active)
 
       common_edit.signal_connect('response') do |widget, response|
         if response == Gtk::ResponseType::OK
+          # last_idがnilじゃない場合、レイアウトを遷移する
+          # nilの場合は、データを読み込む
           if !common_edit.last_id.nil?
+            # ContentIndexへと切り替える
             layout_changer.change_layout(@stack, 2, common_edit.last_id)
           else
             load_data
@@ -174,7 +183,7 @@ class ManageIndex
       end
     end
 
-    # 索引ボタンのイベント
+    # 検索ボタンのクリックイベント
     @search_btn.signal_connect('clicked') do
       common_edit = CommonEdit.new(@window, @search_btn.label, @radio_active)
 
@@ -189,7 +198,7 @@ class ManageIndex
 
     end
 
-    # 戻るボタンのイベント
+    # 戻るボタンのクリックイベント
     @back_btn.signal_connect('clicked') do
       layout_changer.change_layout(@stack, 0)
     end
@@ -198,21 +207,29 @@ class ManageIndex
     set_pagination_btn_signal_connect
   end
 
+  # データ読み込みの処理
   def load_data
+    # データを読み込む
     result = db_data
 
+    # 空の場合、何もしない
     return if result.empty?
 
+    # 結果データを変数に入力
     model = result['model']
     @page = result['page']
+
+    # リストの表示
     show_list(model)
+    # ページネーションの表示
     create_pagination(@page)
 
   end
 
+  # ページネーションの表示
   def create_pagination(page)
 
-    # 以前のページネーションのボタンを消去
+    # 以前のページネーションのボタンをクリア
     remove_pagination_num
     page.current_page = @current_page
 
@@ -225,20 +242,25 @@ class ManageIndex
 
       page_btn.sensitive = false if page_num == page.current_page
 
+      # ページネーションのボタンのクリックイベント
       page_btn.signal_connect('clicked') do
+        # ページネーションのボタンの色を変える
         @pagination_num_btn.each do |btn|
           btn.sensitive = true if btn.label == @current_page.to_s
           btn.sensitive = false if btn.label == page_num.to_s
         end
 
+        # 現在ページを更新する
         @current_page = page_num
 
+        # 新たなページのデータを読み込む
         data = db_data
         model = data['model']
 
         show_list(model)
       end
 
+      # ページネーションのボタンを配列に追加
       @pagination_num_btn << page_btn
     end
 
@@ -249,6 +271,7 @@ class ManageIndex
     @pagination_h_box.show_all
   end
 
+  # 現在のページネーションのボタンをクリアする
   def remove_pagination_num
     @pagination_num_btn.each do |page_btn|
       @pagination_h_box.remove(page_btn)
@@ -257,8 +280,10 @@ class ManageIndex
     @pagination_num_btn.clear
   end
 
+  # ページネーションオプションボタンの初期化
   def init_pagination_opt_btn(page)
-
+    # 最初のページブロックの場合、前のボタンは無効
+    # ページネーションの数が5以下でなら、次のボタンも無効
     if page.page_numbers.nil? || page.total_pages <= 5
       @first_page_btn.sensitive = false
       @prev_btn.sensitive = false
@@ -274,7 +299,9 @@ class ManageIndex
 
   end
 
+  # ページネーションオプションボタンの調整
   def set_pagination_opt_btn(page)
+    # 最初のページブロックの場合、前のボタンは無効
     if page.current_block <= 1
       @first_page_btn.sensitive = false
       @prev_btn.sensitive = false
@@ -283,6 +310,7 @@ class ManageIndex
       @prev_btn.sensitive = true
     end
 
+    # ページブロックの最後の場合、次のボタンは無効
     if page.current_block >= page.total_block
       @next_btn.sensitive = false
       @last_page_btn.sensitive = false
@@ -292,10 +320,12 @@ class ManageIndex
     end
   end
 
+  # ページネーションオプションボタンのクリックイベントの処理
   def pagination_opt_btn_closure(click)
     proc do
       return if @page.nil?
 
+      # pageのmodelの関数に渡してページを返す
       case click
       when :first
         @page.first_page
@@ -312,6 +342,7 @@ class ManageIndex
     end
   end
 
+  # ページネーションのオプションボタンのクリックイベント
   def set_pagination_btn_signal_connect
 
     @first_page_btn.signal_connect('clicked', &pagination_opt_btn_closure(:first))
@@ -321,6 +352,7 @@ class ManageIndex
 
   end
 
+  # リストのデータの表示
   def show_list(data)
     clear_list_box(@list_widget)
 
@@ -340,8 +372,9 @@ class ManageIndex
     @list_widget.show_all
   end
 
+  # DBからデータを読み込む
   def db_data
-
+    # 各種ごとに分岐する
     result = case @radio_active.label
              when I18n.t('radio_menu.content')
                @content_controller.get_content_list(@current_page, @keyword)

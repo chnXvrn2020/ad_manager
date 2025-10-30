@@ -2,6 +2,7 @@
 
 class CommonController
 
+  # commonのデータのtypeを利用して呼び出す
   def get_type_menu(types)
     db = connect_to_db
 
@@ -22,6 +23,7 @@ class CommonController
     model
   end
 
+  # commonのリストを呼び出す
   def get_common_list(text, current_page = 1, keyword = nil)
     type = radio_to_type(text)
 
@@ -38,6 +40,7 @@ class CommonController
     end
   end
 
+  # commonの一つを呼び出す
   def get_one_common(id)
     db = connect_to_db
 
@@ -54,6 +57,7 @@ class CommonController
     Common.new(data[0])
   end
 
+  # commonを追加する
   def add_one_common(common)
     db = connect_to_db
 
@@ -66,6 +70,7 @@ class CommonController
     end
   end
 
+  # commonを変更する
   def modify_one_common(common)
     db = connect_to_db
 
@@ -78,6 +83,7 @@ class CommonController
     end
   end
 
+  # commonを削除する
   def remove_one_common(id)
     db = connect_to_db
 

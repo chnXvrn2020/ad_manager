@@ -7,6 +7,7 @@ require 'gtk3'
 
 class GroupSelector < Gtk::Dialog
 
+  # 初期化
   def initialize(parent, id)
     super(title: I18n.t('group.title'), parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -18,9 +19,14 @@ class GroupSelector < Gtk::Dialog
 
     @id = id
     @controller = GroupController.new
-    @mode = 'add'
-    @group_list_mode = 'only'
+    @add = 'add'
+    @modify = 'modify'
+    @only = 'only'
+    @all = 'all'
+    @mode = @add
+    @group_list_mode = @only
     @param = nil
+
 
     set_ui
     load_group_data
@@ -30,6 +36,7 @@ class GroupSelector < Gtk::Dialog
     show_all
   end
 
+  # UIの設定
   def set_ui
     h_box = Gtk::Box.new(:horizontal)
     child.pack_start(h_box, padding: 10)
@@ -93,28 +100,32 @@ class GroupSelector < Gtk::Dialog
     btn_h_box.pack_start(@close_button, expand: true)
   end
 
+  # ウィゼットの設定
   def set_signal_connect
+    # モードチェンジャーボタンのクリックイベント
     @mode_chg_btn.signal_connect('clicked') do
-      if @mode == 'add'
-        @mode = 'modify'
+      if @mode == @add
+        @mode = @modify
         @mode_chg_btn.label = I18n.t('group.modify_mode')
-      elsif @mode == 'modify'
-        @mode = 'add'
+      elsif @mode == @modify
+        @mode = @add
         @mode_chg_btn.label = I18n.t('group.add_mode')
       end
     end
 
+    # グループリストボタンのクリックイベント
     @group_list_btn.signal_connect('clicked') do
-      if @group_list_mode == 'only'
-        @group_list_mode = 'all'
+      if @group_list_mode == @only
+        @group_list_mode = @all
         @group_list_btn.label = I18n.t('group.all_list')
-      elsif @group_list_mode == 'all'
-        @group_list_mode = 'only'
+      elsif @group_list_mode == @all
+        @group_list_mode = @only
         @group_list_btn.label = I18n.t('group.only_list')
       end
       load_group_data
     end
 
+    # グループリストのダブルクリックイベント
     @group_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -122,30 +133,34 @@ class GroupSelector < Gtk::Dialog
         if selected_row
           item = selected_row.name.to_i
 
-          if @mode == 'add'
+          # モードによって処理を分岐する
+          if @mode == @add
             add_group(widget, item, selected_row)
-          elsif @mode == 'modify'
+          elsif @mode == @modify
             modify_group(item)
           end
         end
       end
     end
 
+    # 選択されてるリストのダブルクリックイベント
     @selected_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
         if selected_row
           item = selected_row.name.to_i
 
-          if @mode == 'add'
+          # モードによって処理を分岐する
+          if @mode == @add
             remove_selected_group(widget, item, selected_row)
-          elsif @mode == 'modify'
+          elsif @mode == @modify
             modify_selected_group(item)
           end
         end
       end
     end
 
+    # 追加ボタンのクリックイベント
     @add_btn.signal_connect('clicked') do
       group_edit = GroupEdit.new(self, @add_btn.label)
 
@@ -154,6 +169,7 @@ class GroupSelector < Gtk::Dialog
       end
     end
 
+    # 検索ボタンのクリックイベント
     @search_btn.signal_connect('clicked') do
       group_edit = GroupEdit.new(self, @search_btn.label)
 
@@ -161,19 +177,21 @@ class GroupSelector < Gtk::Dialog
         if response == Gtk::ResponseType::OK
           @param = group_edit.param
 
-          @group_list_mode = 'all'
+          @group_list_mode = @all
           @group_list_btn.label = I18n.t('group.all_list')
           load_group_data
         end
       end
     end
 
+    # 閉じるボタンのクリックイベント
     @close_button.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
       destroy
     end
   end
 
+  # グループの追加の処理
   def add_group(widget, item, selected_row)
     result = @controller.set_mapping_group(@id, item)
 
@@ -193,6 +211,7 @@ class GroupSelector < Gtk::Dialog
     widget.remove(selected_row)
   end
 
+  # グループの更新の処理
   def modify_group(item)
     group_edit = GroupEdit.new(self, I18n.t('menu.modify'), item)
 
@@ -201,6 +220,7 @@ class GroupSelector < Gtk::Dialog
     end
   end
 
+  # 選択されてるグループの除外の処理
   def remove_selected_group(widget, item, selected_row)
     result = @controller.remove_mapping_group(@id, item)
 
@@ -225,6 +245,7 @@ class GroupSelector < Gtk::Dialog
     widget.remove(selected_row)
   end
 
+  # 選択されてるグループの更新の処理
   def modify_selected_group(item)
     group_edit = GroupEdit.new(self, I18n.t('menu.modify'), item)
 
@@ -233,12 +254,13 @@ class GroupSelector < Gtk::Dialog
     end
   end
 
+  # グループデータの読み込み
   def load_group_data
     clear_list_box(@group_list)
 
-    group = if @group_list_mode == 'all'
+    group = if @group_list_mode == @all
               @controller.get_group_list(@id, @param)
-            elsif @group_list_mode == 'only'
+            elsif @group_list_mode == @only
               @controller.get_group_list(nil, @param)
             end
 
@@ -259,6 +281,7 @@ class GroupSelector < Gtk::Dialog
     @group_list.show_all
   end
 
+  # 選択されてるグループデータの読み込み
   def load_selected_group_data
     clear_list_box(@selected_list)
 

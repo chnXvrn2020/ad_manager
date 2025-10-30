@@ -2,6 +2,7 @@
 
 class AnimeController
 
+  # アニメの追加
   def add_anime(param)
     db = connect_to_db
 
@@ -27,6 +28,7 @@ class AnimeController
     true
   end
 
+  # グループ別に既存のアニメを追加する
   def set_mapping_anime(group_id, anime_id)
     db = connect_to_db
 
@@ -41,6 +43,7 @@ class AnimeController
     true
   end
 
+  # グループ別に既存のアニメを除外する
   def remove_mapping_anime(group_id, anime_id)
     db = connect_to_db
 
@@ -55,6 +58,7 @@ class AnimeController
     true
   end
 
+  # グループ別に追加されてるアニメ情報のリストを呼び出す
   def get_anime_list(group_id, keyword = nil)
     db = connect_to_db
     data = begin
@@ -74,6 +78,7 @@ class AnimeController
     anime
   end
 
+  # グループ別に追加されてないアニメ情報のリストを呼び出す
   def get_unselected_anime_list(group_id, keyword = nil)
     db = connect_to_db
 
@@ -94,6 +99,7 @@ class AnimeController
     anime
   end
 
+  # アニメの視聴を始める
   def start_watching_anime(id)
     db = connect_to_db
     data = {}
@@ -114,6 +120,7 @@ class AnimeController
     Anime.new(data[0])
   end
 
+  # 視聴中のアニメの状態を変更する
   def modify_watching_anime(type, id)
     status = 4 if type == :anime_stop
     status = 2 if type == :anime_restart
@@ -137,6 +144,7 @@ class AnimeController
     Anime.new(data[0])
   end
 
+  # 視聴中のアニメの現在のエピソードを変更する
   def modify_anime_current_episode(current_episode, id)
     db = connect_to_db
 
@@ -151,6 +159,7 @@ class AnimeController
     true
   end
 
+  # 視聴中のアニメをコンプリする
   def complete_watching_anime(id, completion_date = nil)
     db = connect_to_db
     data = {}
@@ -171,6 +180,7 @@ class AnimeController
     Anime.new(data[0])
   end
 
+  # アニメ情報をカウントとともにリストとして呼び出す
   def get_anime_list_with_count(current_page = 1, keyword = nil, status = nil)
     db = connect_to_db
 
@@ -183,6 +193,7 @@ class AnimeController
     end
   end
 
+  # アニメをIDで呼び出す
   def get_anime_by_id(id)
     db = connect_to_db
 
@@ -197,6 +208,7 @@ class AnimeController
     Anime.new(data[0])
   end
 
+  # アニメ情報をIDで呼び出す
   def get_anime_info_by_id(type, id)
     db = connect_to_db
 
@@ -214,6 +226,7 @@ class AnimeController
     anime_info
   end
 
+  # アニメ情報を変更する
   def modify_anime(anime, img)
     db = connect_to_db
 
@@ -223,6 +236,8 @@ class AnimeController
       result = AnimeService.instance.modify_anime(db, anime)
       return false unless result
 
+      # 画像の変更
+      # 画像が削除された場合はファイルを削除する
       if img['img_del'] == 'Y'
         file = {}
 
@@ -245,6 +260,7 @@ class AnimeController
     true
   end
 
+  # アニメ情報を削除する
   def remove_anime(id, file)
     db = connect_to_db
 
@@ -263,11 +279,25 @@ class AnimeController
     true
   end
 
+  # アニメを推薦する
   def recommend_anime
     db = connect_to_db
 
     begin
       AnimeService.instance.recommend_anime(db)
+    rescue StandardError => e
+      e.message
+    ensure
+      db.close
+    end
+  end
+
+  # アニメの年代をごとに呼び出す
+  def get_anime_year_group_list
+    db = connect_to_db
+
+    begin
+      AnimeService.instance.get_anime_year_group_list(db)
     rescue StandardError => e
       e.message
     ensure

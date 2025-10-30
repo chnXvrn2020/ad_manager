@@ -12,6 +12,7 @@ class HomeIndex
   attr_accessor :type_combo
   attr_reader :frame
 
+  # 初期化
   def initialize(window, stack)
     @window = window
     @stack = stack
@@ -34,6 +35,7 @@ class HomeIndex
     set_signal_connect
   end
 
+  # UIの初期化
   def initialize_ui(_id = nil)
     @keyword = nil
     @current_page = 1
@@ -43,6 +45,7 @@ class HomeIndex
 
   private
 
+  # UIの設定
   def set_ui
 
     main_v_box = Gtk::Box.new(:vertical)
@@ -143,18 +146,22 @@ class HomeIndex
     menu_h_box.pack_start(@exit_btn, expand: true)
   end
 
+  # ウィゼットの設定
   def set_signal_connect
     layout_changer = LayoutChanger.new
 
+    # 状態のコンボボックスの変更時のイベント
     @status_combo.signal_connect('changed') do |combo|
       load_list_data(@type_combo.active_iter[1], combo.active_iter[1], @book_option_combo.active_iter[1])
     end
 
+    # タイプのコンボボックスの変更時のイベント
     @type_combo.signal_connect('changed') do |combo|
       load_list_data(combo.active_iter[1], @status_combo.active_iter[1], @book_option_combo.active_iter[1])
       change_book_option_combo(combo.active_iter[1])
     end
 
+    # 書籍の種別のコンボボックスの変更時のイベント
     @book_option_combo.signal_connect('changed') do |combo|
       load_list_data(@type_combo.active_iter[1], @status_combo.active_iter[1], combo.active_iter[1])
     end
@@ -164,6 +171,7 @@ class HomeIndex
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
 
+        # リストによって渡される引数が異なるため、分岐する
         if selected_row
           item = selected_row.name.to_i
           data = type_selector(item)
@@ -178,10 +186,13 @@ class HomeIndex
       end
     end
 
+    # 管理画面ボタンのクリックイベント
     @manage_btn.signal_connect('clicked') do
+      # ManageIndexへと切り替える
       layout_changer.change_layout(@stack, 1)
     end
 
+    # 検索ボタンのクリックイベント
     @search_btn.signal_connect('clicked') do
       home_search = HomeSearch.new(@window, I18n.t('menu.search'), @keyword)
 
@@ -193,10 +204,14 @@ class HomeIndex
       end
     end
 
+    # 推薦ボタンのクリックイベント
     @recommend_btn.signal_connect('clicked') do
       recommend_dialog = RecommendDialog.new(@window)
 
       recommend_dialog.signal_connect('response') do |widget, response|
+
+        # 推薦ダイアログからの返し値をもとに、画面を切り替える
+        # ContentIndexへと切り替える
         if response == Gtk::ResponseType::OK
           data = recommend_dialog.data
           layout_changer.change_layout(@stack, 3, data)
@@ -204,13 +219,23 @@ class HomeIndex
       end
     end
 
+    # TODO: 詳細検索画面の作成
+
     @table_search_btn.signal_connect('clicked') do
-      layout_changer.change_layout(@stack, 4)
+      dialog_message(@window, :info, :developing)
+      # layout_changer.change_layout(@stack, 4)
     end
 
-    # TODO : 索引、統計も作成
+    @statistics_btn.signal_connect('clicked') do
+      dialog_message(@window, :info, :developing)
+      # layout_changer.change_layout(@stack, 5)
+    end
 
+    # TODO: 統計画面の作成
+
+    # 終了ボタンのクリックイベント
     @exit_btn.signal_connect('clicked') do
+      # アプリを閉じる
       @window.destroy
     end
 
@@ -218,6 +243,7 @@ class HomeIndex
     set_pagination_btn_signal_connect
   end
 
+  # リストのデータの読み込み
   def load_list_data(type_id, status_id, book_option_id)
     @type_id = type_id
     @status_id = status_id
@@ -247,6 +273,7 @@ class HomeIndex
 
   end
 
+  # タイプごとにデータを読み込む
   def db_data(common)
 
     result = case common.name
@@ -281,6 +308,7 @@ class HomeIndex
     result
   end
 
+  # リストに情報を出力
   def show_list(data)
     clear_list_box(@list_widget)
 
@@ -301,6 +329,7 @@ class HomeIndex
 
   end
 
+  # コンボボックスのデータを読み込む
   def load_combo_data
     @status_combo.clear
     @type_combo.clear
@@ -310,8 +339,10 @@ class HomeIndex
     type_renderer = Gtk::CellRendererText.new
     book_option_renderer = Gtk::CellRendererText.new
 
-    # コンボボックスのデータ読み込み
-
+    # h_m_1：状態
+    # h_m_2：種別
+    # original：原作
+    # h_m_3：書籍の種別
     param = ['h_m_1', %w[h_m_2 original], 'h_m_3']
 
     status_model = Gtk::ListStore.new(String, Integer)
@@ -352,6 +383,7 @@ class HomeIndex
     @book_option_combo.active = 0
   end
 
+  # ページネーションの作成
   def create_pagination(page)
 
     # 以前のページネーションのボタンを消去
@@ -398,6 +430,7 @@ class HomeIndex
     @pagination_h_box.show_all
   end
 
+  # ページネーションボタンの除去
   def remove_pagination_num
     @pagination_num_btn.each do |page_btn|
       @pagination_h_box.remove(page_btn)
@@ -406,6 +439,7 @@ class HomeIndex
     @pagination_num_btn.clear
   end
 
+  # ページネーションオプションボタンの初期化
   def init_pagination_opt_btn(page)
 
     if page.page_numbers.nil? || page.total_pages <= 5
@@ -423,6 +457,7 @@ class HomeIndex
 
   end
 
+  # ページネーションオプションボタンの調整
   def set_pagination_opt_btn(page)
     if page.current_block <= 1
       @first_page_btn.sensitive = false
@@ -441,6 +476,7 @@ class HomeIndex
     end
   end
 
+  # ページネーションオプションボタンクリックイベント
   def pagination_opt_btn_closure(click)
     proc do
       return if @page.nil?
@@ -461,6 +497,7 @@ class HomeIndex
     end
   end
 
+  # ページネーションボタンのクリックイベント
   def set_pagination_btn_signal_connect
 
     @first_page_btn.signal_connect('clicked', &pagination_opt_btn_closure(:first))
@@ -470,6 +507,7 @@ class HomeIndex
 
   end
 
+  # 種別ごとの書籍の種別のコンボボックスの変更時のイベント
   def type_selector(id)
     common = @common_controller.get_one_common(@type_id)
 
@@ -501,12 +539,16 @@ class HomeIndex
     result
   end
 
+  # リストのデータをダブルクリックするときの処理
+
   def view_content(param)
     layout_changer = LayoutChanger.new
 
+    # ContentIndexへと切り替える
     layout_changer.change_layout(@stack, 3, param)
   end
 
+  # 書籍の種別のコンボボックスの変更時のイベント
   def change_book_option_combo(combo)
 
     if combo == 8 || combo == 9

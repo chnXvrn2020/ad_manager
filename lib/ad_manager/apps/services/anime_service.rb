@@ -160,6 +160,10 @@ class AnimeService
 
   end
 
+  def get_anime_year_group_list(db)
+    AnimeMapper.instance.select_anime_year_group(db)
+  end
+
 end
 
 AnimeService.instance

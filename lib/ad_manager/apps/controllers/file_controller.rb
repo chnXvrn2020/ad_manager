@@ -2,6 +2,7 @@
 
 class FileController
 
+  # 画像情報取得
   def get_image_info(type, id)
     db = connect_to_db
 

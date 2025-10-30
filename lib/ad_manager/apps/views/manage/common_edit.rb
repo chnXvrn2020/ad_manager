@@ -10,6 +10,7 @@ class CommonEdit < Gtk::Dialog
 
   attr_reader :keyword, :last_id
 
+  # 初期化
   def initialize(parent, menu, type, data = nil)
     super(title: menu, parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -34,6 +35,7 @@ class CommonEdit < Gtk::Dialog
     show_all
   end
 
+  # UIの設定
   def set_ui
 
     h_box = Gtk::Box.new(:horizontal)
@@ -49,6 +51,7 @@ class CommonEdit < Gtk::Dialog
 
     @type = radio_to_type(@type.label)
 
+    # 機能によって分岐する
     case @menu
     when I18n.t('menu.add')
       add_ui
@@ -66,18 +69,21 @@ class CommonEdit < Gtk::Dialog
     end
   end
 
+  # 追加のUIの設定
   def add_ui
     @add_button = Gtk::Button.new(label: I18n.t('menu.add'))
     @add_button.set_size_request(270, 50)
     @btn_box.pack_start(@add_button, expand: true)
   end
 
+  # 検索のUIの設定
   def search_ui
     @search_button = Gtk::Button.new(label: I18n.t('menu.search'))
     @search_button.set_size_request(270, 50)
     @btn_box.pack_start(@search_button, expand: true)
   end
 
+  # 更新のUIの設定
   def modify_ui
     @modify_button = Gtk::Button.new(label: I18n.t('menu.modify'))
     @modify_button.set_size_request(150, 50)
@@ -88,13 +94,16 @@ class CommonEdit < Gtk::Dialog
     @btn_box.pack_start(@remove_button, expand: true)
   end
 
+  # 閉じるボタンのUIの設定
   def close_btn_ui
     @close_button = Gtk::Button.new(label: I18n.t('menu.close'))
     @close_button.set_size_request(270, 50)
     @btn_box.pack_start(@close_button, expand: true)
   end
 
+  # 各種ウィゼットの設定
   def set_signal_connect
+    # リターンキーを押すときに、各種の処理を行う
     signal_connect('key_press_event') do |widget, event|
       if event.keyval == Gdk::Keyval::KEY_Return ||
         event.keyval == Gdk::Keyval::KEY_KP_Enter
@@ -115,13 +124,16 @@ class CommonEdit < Gtk::Dialog
       false
     end
 
+    # 閉じるボタンのクリックイベント
     @close_button.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
       destroy
     end
   end
 
+  # 追加UIのウィゼットのイベント設定
   def set_add_widgets_connect
+    # 追加ボタンのイクリックイベント
     @add_button.signal_connect('clicked') do
       next if @type.nil?
 
@@ -130,6 +142,7 @@ class CommonEdit < Gtk::Dialog
         next
       end
 
+      # 各種の処理を行う
       result = case @type
                when 'content'
                  data = @content_controller.add_content(@entry.text.to_s.strip)
@@ -170,7 +183,9 @@ class CommonEdit < Gtk::Dialog
     end
   end
 
+  # 検索UIのウィゼットのイベント設定
   def set_search_widgets_connect
+    # 検索ボタンのイクリックイベント
     @search_button.signal_connect('clicked') do
       next if @type.nil?
 
@@ -186,10 +201,9 @@ class CommonEdit < Gtk::Dialog
     end
   end
 
+  # 更新UIのウィゼットのイベント設定
   def set_modify_widgets_connect
-
-    ##
-    # ボタンのコネクト
+    # 更新ボタンのイクリックイベント
     @modify_button.signal_connect('clicked') do
       next if @type.nil?
 
@@ -215,6 +229,7 @@ class CommonEdit < Gtk::Dialog
       end
     end
 
+    # 削除ボタンのイクリックイベント
     @remove_button.signal_connect('clicked') do
       con = confirm_dialog(:remove_confirm, self)
       res = con.run
@@ -237,6 +252,7 @@ class CommonEdit < Gtk::Dialog
     end
   end
 
+  # データの読み込み
   def load_data
     return if @data.nil?
 

@@ -6,6 +6,7 @@ class ViewSearch < Gtk::Dialog
 
   attr_reader :keyword, :radio_active
 
+  # 初期設定
   def initialize(parent, group_id)
     super(title: I18n.t('menu.search'), parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -26,6 +27,7 @@ class ViewSearch < Gtk::Dialog
 
   private
 
+  # UIの設定
   def set_ui
     h_box = Gtk::Box.new(:horizontal)
     child.pack_start(h_box, padding: 10)
@@ -63,13 +65,16 @@ class ViewSearch < Gtk::Dialog
     btn_box.pack_start(@close_button, expand: true)
   end
 
+  # ウィゼットの設定
   def set_signal_connect
+    # ラジオボタンのイベント
     @radio_btn.each do |radio|
       radio.signal_connect('toggled') do
         @radio_active = radio.label if radio.active?
       end
     end
 
+    # 検索ボタンのクリックイベント
     @search_button.signal_connect('clicked') do
       @radio_active = I18n.t('view.group') if @radio_active.nil?
 
@@ -79,6 +84,7 @@ class ViewSearch < Gtk::Dialog
       destroy
     end
 
+    # リターンキーを押すときに、検索ボタンをクリックする
     signal_connect('key_press_event') do |widget, event|
       if event.keyval == Gdk::Keyval::KEY_Return ||
         event.keyval == Gdk::Keyval::KEY_KP_Enter
@@ -89,6 +95,7 @@ class ViewSearch < Gtk::Dialog
       false
     end
 
+    # 閉じるボタンのクリックイベント
     @close_button.signal_connect('clicked') do
       response(Gtk::ResponseType::CANCEL)
       destroy

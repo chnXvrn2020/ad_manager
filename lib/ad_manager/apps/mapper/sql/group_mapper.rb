@@ -225,8 +225,6 @@ class GroupMapper
   end
 
   def select_book_group_list(db, type, page, keyword, status)
-    numeric_sort(db)
-
     sql = <<~SQL
       SELECT DISTINCT tg.id, tg.name
       FROM tb_group tg
@@ -258,11 +256,11 @@ class GroupMapper
                  HAVING COUNT(tb.id) > 0
                  AND (SELECT COUNT(tbs.id)) > 0
                  AND COUNT(tb.id) > (SELECT COUNT(tbs.id))
-                 ORDER BY numeric_sort(tb.name)'
+                 ORDER BY tb.created_date, tb.name'
       when 3
         sql += ' GROUP BY tg.id, tg.name
                  HAVING COUNT(tb.id) > 0 AND (SELECT COUNT(tbs.id)) <= 0
-                 ORDER BY numeric_sort(tb.name)'
+                 ORDER BY tb.created_date, tb.name'
       end
     end
 

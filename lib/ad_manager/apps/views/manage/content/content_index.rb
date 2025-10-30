@@ -10,6 +10,7 @@ require_relative 'data_selector'
 class ContentIndex
   attr_reader :frame
 
+  # 初期化
   def initialize(window, stack)
     @window = window
     @stack = stack
@@ -32,12 +33,15 @@ class ContentIndex
     @keyword = nil
     @company_ides = []
     @text_renderer = Gtk::CellRendererText.new
+    @anime = 'tb_anime'
+    @book = 'tb_book'
 
     set_ui
     set_signal_connect
     initialize_window
   end
 
+  # UIの初期化
   def initialize_ui(id)
     @id = id
 
@@ -61,6 +65,7 @@ class ContentIndex
     load_group_list
   end
 
+  # フレイムの初期化
   def initialize_window
     initialize_no_data
     initialize_anime_data
@@ -69,6 +74,7 @@ class ContentIndex
 
   private
 
+  # UIの設定
   def set_ui
     @main_v_box = Gtk::Box.new(:vertical)
     @main_v_box.set_margin_start(50)
@@ -118,6 +124,7 @@ class ContentIndex
     bottom_btn_frame
   end
 
+  # 選択されてないときのUIの設定
   def no_data
     @no_data_main_box = Gtk::Box.new(:vertical)
     @main_v_box.pack_start(@no_data_main_box, expand: true)
@@ -126,6 +133,7 @@ class ContentIndex
     @no_data_main_box.pack_start(@no_data_label)
   end
 
+  # アニメが選択だれた時のUIの設定
   def anime_data
     @anime_data_main_box = Gtk::Box.new(:horizontal)
     @anime_data_main_box.set_margin_start(50)
@@ -232,27 +240,38 @@ class ContentIndex
     set_anime_connect
   end
 
+  # アニメのUIのウィゼットの設定
   def set_anime_connect
+    # アニメの制作日付の入力チェック
     @anime_date_entry.signal_connect('focus-out-event') do |widget, event|
       date_text = widget.text
 
+      # 1990-01-01の形式で入力されているかチェック
       widget.text = '' unless date_text.match?(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/)
     end
 
+    # アニメのエピソードの入力チェック
     @anime_episode_entry.signal_connect('changed') do |widget|
       current_text = widget.text
+
+      # 数字のみで入力されているかチェック
       widget.text = current_text.gsub(/\D/, '') unless current_text.match?(/\A\d+\z/)
     end
 
+    # アニメの制作会社の選択ボタンのクリックイベント
     @company_manage_btn.signal_connect('clicked') do
       studio_selector = CompanySelector.new(@window, @company_type, @company_ides)
+
+      # 戻り値を配列に格納
       @company_ides = company_selector(studio_selector)
     end
 
+    # アニメの画像の編集ボタンのクリックイベント
     @anime_image_btn.signal_connect('clicked') do
       image_edit_window
     end
 
+    # アニメのリストのダブルクリックイベント
     @anime_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -264,36 +283,48 @@ class ContentIndex
       end
     end
 
+    # アニメのクリアボタンのクリックイベント
     @anime_clear_btn.signal_connect('clicked') do
       @content_id = nil
       clear_anime_data
       clear_common_data
     end
 
+    # アニメの検索ボタンのクリックイベント
     @anime_search_btn.signal_connect('clicked') do
       content_search_btn_clicked
     end
 
+    # アニメリストからの追加ボタンのクリックイベント
     @anime_list_btn.signal_connect('clicked') do
       data_list_btn_clicked
     end
 
+    # アニメの追加ボタンのクリックイベント
     @anime_add_btn.signal_connect('clicked') do
       data_add_btn_clicked
     end
 
+    # アニメの更新ボタンのクリックイベント
     @anime_edit_button.signal_connect('clicked') do
       data_edit_btn_clicked
     end
 
+    # アニメの削除ボタンのクリックイベント
     @anime_remove_button.signal_connect('clicked') do
       remove_btn_clicked
     end
   end
 
+  # アニメのフレイムデータの読み込み
   def load_anime_frame_data
+    # storage：ストレージ
+    # media：メディア
+    # rip：リップ
+    # ratio：比率
     common = %w[storage media rip ratio]
 
+    # 種別に応じたデータを読み込む
     common.each do |item|
       result = @common_controller.get_type_menu(item)
 
@@ -358,6 +389,7 @@ class ContentIndex
     end
   end
 
+  # アニメのリストの読み込み
   def load_anime_data
     anime = @anime_controller.get_anime_list(@group_id, @keyword)
 
@@ -381,6 +413,7 @@ class ContentIndex
     @anime_list.show_all
   end
 
+  # 一つのアニメの情報の読み込み
   def load_one_anime_data
     anime = @anime_controller.get_anime_by_id(@content_id)
 
@@ -391,6 +424,7 @@ class ContentIndex
 
     @anime_title_entry.text = anime.name
 
+    # アニメ情報をコンボボックスと一致するように設定する
     combo_boxes = [@storage_combo, @media_combo, @rip_combo]
     items = [anime.storage, anime.media, anime.rip]
 
@@ -400,6 +434,7 @@ class ContentIndex
 
     combo_selector(array)
 
+    # アニメの比率情報を一致するようにラジオボタンをチェックする
     ratio = anime.ratio.split(',').map(&:to_i)
 
     @ratio_box.children.each do |child|
@@ -410,18 +445,25 @@ class ContentIndex
       end
     end
 
+    # エントリーにアニメの情報を入れる
     @anime_date_entry.text = anime.created_date
     @anime_episode_entry.text = anime.episode.to_s
 
+    # アニメの制作会社情報を配列に格納する
     studio = anime.studio.split(',').map(&:to_i)
     @company_ides = load_company_data(studio)
 
+    # アニメのイメージは更新がされてないから、nilとする
+    # 画像情報はimage_editのダイアログで読み込む
     @img_file = nil
     @img_del = 'N'
+
+    # アニメの更新ボタンと削除ボタンの有効化
     @anime_edit_button.sensitive = true
     @anime_remove_button.sensitive = true
   end
 
+  # 書籍UIの設定
   def book_data
     @book_data_main_box = Gtk::Box.new(:horizontal)
     @book_data_main_box.set_margin_start(50)
@@ -501,23 +543,30 @@ class ContentIndex
     set_book_connect
   end
 
+  # 書籍UIのウィゼットの設定
   def set_book_connect
+    # 書籍の出版日付の入力チェック
     @book_date_entry.signal_connect('focus-out-event') do |widget, event|
       date_text = widget.text
 
+      # 1990-01-01の形式で入力されているかチェック
       widget.text = '' unless date_text.match?(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/)
     end
 
+    # 書籍の出版社の管理ボタンのクリックイベント
     @publisher_manage_btn.signal_connect('clicked') do
       publisher_selector = CompanySelector.new(@window, @company_type, @company_ides)
 
+      # 出版社の情報を配列に格納する
       @company_ides = company_selector(publisher_selector)
     end
 
+    # 書籍のイメージの管理ボタンのクリックイベント
     @book_image_btn.signal_connect('clicked') do
       image_edit_window
     end
 
+    # 書籍のリストのダブルクリックイベント
     @book_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -529,33 +578,40 @@ class ContentIndex
       end
     end
 
+    # 書籍のリストのクリアボタンのクリックイベント
     @book_clear_btn.signal_connect('clicked') do
       @content_id = nil
       clear_book_data
       clear_common_data
     end
 
+    # 書籍のリストの検索ボタンのクリックイベント
     @book_search_btn.signal_connect('clicked') do
       content_search_btn_clicked
     end
 
+    # 書籍リストからの追加ボタンのクリックイベント
     @book_list_btn.signal_connect('clicked') do
       data_list_btn_clicked
     end
 
+    # 書籍の追加ボタンのクリックイベント
     @book_add_btn.signal_connect('clicked') do
       data_add_btn_clicked
     end
 
+    # 書籍の更新ボタンのクリックイベント
     @book_edit_button.signal_connect('clicked') do
       data_edit_btn_clicked
     end
 
+    # 書籍の削除ボタンのクリックイベント
     @book_remove_button.signal_connect('clicked') do
       remove_btn_clicked
     end
   end
 
+  # 書籍のリストの読み込み
   def load_book_data
     type = @selected_group_original_combo.active_iter[1]
     book = @book_controller.get_book_list(type, @group_id, @keyword)
@@ -580,6 +636,7 @@ class ContentIndex
     @book_list.show_all
   end
 
+  # 一つの書籍の情報の読み込み
   def load_one_book_data
     book = @book_controller.get_book_by_id(@content_id)
 
@@ -588,18 +645,24 @@ class ContentIndex
       return
     end
 
+    # 書籍の情報をエントリーに入れる
     @book_title_entry.text = book.name
     @book_date_entry.text = book.created_date
 
+    # 書籍の出版社情報を配列に格納する
     publisher = book.publisher.split(',').map(&:to_i)
     @company_ides = load_company_data(publisher)
 
+    # 書籍のイメージは更新がされてないから、nilとする
     @img_file = nil
     @img_del = 'N'
+
+    # 書籍の更新ボタンと削除ボタンの有効化
     @book_edit_button.sensitive = true
     @book_remove_button.sensitive = true
   end
 
+  # グループUIの設定
   def data_group_frame
     @group_main_box = Gtk::Box.new(:horizontal)
     @main_v_box.pack_start(@group_main_box)
@@ -614,7 +677,9 @@ class ContentIndex
     set_group_connect
   end
 
+  # グループUIのウィゼットの設定
   def set_group_connect
+    # グループのリストのダブルクリックイベント
     @group_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
@@ -629,9 +694,11 @@ class ContentIndex
             next
           end
 
+          # アニメと書籍のリストをクリアする
           clear_list_box(@anime_list)
           clear_list_box(@book_list)
 
+          # フレイムを初期化する
           initialize_window
           clear_common_data
 
@@ -648,6 +715,7 @@ class ContentIndex
     end
   end
 
+  # 下のボタンのUIの設定
   def bottom_btn_frame
     @bottom_btn_box = Gtk::Box.new(:horizontal)
     @main_v_box.pack_start(@bottom_btn_box, padding: 10)
@@ -661,18 +729,20 @@ class ContentIndex
     @bottom_btn_box.pack_start(@back_btn, expand: true)
   end
 
+  # 原作情報の読み込み
   def load_original_combo
     text_renderer = Gtk::CellRendererText.new
 
     @selected_group_original_combo.clear
 
-    original = begin
-      @common_controller.get_type_menu('original')
-    rescue StandardError => e
+    original = @common_controller.get_type_menu('original')
+
+    if original.is_a?(String)
       dialog_message(@window, :error, :db_error, e.message)
       return
     end
 
+    # 読み込んだ情報をコンボボックスに入れる
     original_model = Gtk::ListStore.new(String, Integer)
 
     primary = original_model.append
@@ -691,7 +761,9 @@ class ContentIndex
     @selected_group_original_combo.active = 0
   end
 
+  # ウィゼットの設定
   def set_signal_connect
+    # コンテンツの変更ボタンのクリックイベント
     @content_edit.signal_connect('clicked') do
       content = {}
 
@@ -712,6 +784,7 @@ class ContentIndex
       end
     end
 
+    # コンテンツの削除ボタンのクリックイベント
     @content_remove.signal_connect('clicked') do
       con = confirm_dialog(:remove_confirm, @window)
       res = con.run
@@ -734,29 +807,34 @@ class ContentIndex
       con.destroy
     end
 
+    # グループの変更ボタンのクリックイベント
     @modify_btn.signal_connect('clicked') do
       group_selector = GroupSelector.new(@window, @id)
 
+      # マップに設定された情報をもとにグループを読み込む
       group_selector.signal_connect('response') do |widget, response|
         load_group_list if response == Gtk::ResponseType::OK
       end
     end
 
+    # 戻るボタンのクリックイベント
     @back_btn.signal_connect('clicked') do
       layout_changer = LayoutChanger.new
 
+      # HomeIndexへと切り替える
       layout_changer.change_layout(@stack, 1)
     end
 
+    # 原作コンボボックスの変更イベント
     @selected_group_original_combo.signal_connect('changed') do |combo|
       @keyword = nil
 
       case combo.active_iter[0]
       when I18n.t('original.anime')
-        frame_changer('studio', 'tb_anime', false, true, false)
+        frame_changer('studio', @anime, false, true, false)
         load_anime_data
       when I18n.t('original.manga'), I18n.t('original.novel')
-        frame_changer('publisher', 'tb_book', false, false, true)
+        frame_changer('publisher', @book, false, false, true)
         load_book_data
       when I18n.t('menu.original')
         @no_data_label.text = I18n.t('content.select_original')
@@ -777,15 +855,18 @@ class ContentIndex
     end
   end
 
+  # 原作が選択されてないときのUIの初期化
   def initialize_no_data
     @no_data_main_box.visible = true
   end
 
+  # アニメUIの初期化
   def initialize_anime_data
     clear_anime_data
     @anime_data_main_box.visible = false
   end
 
+  # アニメウィゼットの初期化
   def clear_anime_data
     @anime_title_entry.text = ''
     @anime_date_entry.text = ''
@@ -803,11 +884,13 @@ class ContentIndex
     end
   end
 
+  # 書籍UIの初期化
   def initialize_book_data
     clear_book_data
     @book_data_main_box.visible = false
   end
 
+  # 書籍ウィゼットの初期化
   def clear_book_data
     @book_title_entry.text = ''
     @book_date_entry.text = ''
@@ -816,6 +899,7 @@ class ContentIndex
     @book_remove_button.sensitive = false
   end
 
+  # 共通ウィゼットの初期化
   def clear_common_data
     @img_file = nil
     @img_del = 'N'
@@ -824,6 +908,7 @@ class ContentIndex
     @company_ides = []
   end
 
+  # フレイムの変更
   def frame_changer(company, content, no_data, anime, book)
     @company_type = company
     @content_type = content
@@ -833,6 +918,7 @@ class ContentIndex
     @book_data_main_box.visible = book
   end
 
+  # イメージの編集のウィンドウの作成
   def image_edit_window
     image_edit = ImageEdit.new(@window, @content_type, @content_id, @img_file, @img_del)
 
@@ -846,14 +932,16 @@ class ContentIndex
     end
   end
 
+  # リストのダブルクリックの時、分岐する
   def data_list_clicked
-    if @content_type == 'tb_anime'
+    if @content_type == @anime
       load_one_anime_data
-    elsif @content_type == 'tb_book'
+    elsif @content_type == @book
       load_one_book_data
     end
   end
 
+  # グループリストの読み込み
   def load_group_list
     clear_list_box(@group_list)
 
@@ -876,6 +964,7 @@ class ContentIndex
     @group_list.show_all
   end
 
+  # 会社データを配列に格納して返す
   def load_company_data(companies)
     ides = []
 
@@ -886,11 +975,13 @@ class ContentIndex
     ides
   end
 
+  # 各情報を検証して、エラーがあればメッセージを表示する
+  # 成功したら、検証した情報を返す
   def data_validate
 
-    result = if @content_type == 'tb_anime'
+    result = if @content_type == @anime
                anime_validation
-             elsif @content_type == 'tb_book'
+             elsif @content_type == @book
                book_validation
              end
 
@@ -902,6 +993,7 @@ class ContentIndex
     result
   end
 
+  # 検索ボタンのクリックの時、分岐する
   def content_search_btn_clicked
     content_search = ContentSearch.new(@window)
 
@@ -909,23 +1001,25 @@ class ContentIndex
       if response == Gtk::ResponseType::OK
         @keyword = content_search.keyword
 
-        if @content_type == 'tb_anime'
+        if @content_type == @anime
           load_anime_data
-        elsif @content_type == 'tb_book'
+        elsif @content_type == @book
           load_book_data
         end
       end
     end
   end
 
+  # 情報を追加ボタンを押すとき、分岐する
   def data_add_btn_clicked
     @keyword = nil
 
-    if @content_type == 'tb_anime'
+    if @content_type == @anime
       anime = data_validate
 
       return if anime.nil?
 
+      # アニメ情報、content_type、group_id、イメージ情報をまとめる
       param = {
         anime: Anime.new(anime),
         content_type: @content_type,
@@ -946,11 +1040,12 @@ class ContentIndex
       clear_common_data
       load_anime_data
 
-    elsif @content_type == 'tb_book'
+    elsif @content_type == @book
       book = data_validate
 
       return if book.nil?
 
+      # 書籍情報、content_type、group_id、イメージ情報をまとめる
       param = {
         book: Book.new(book),
         content_type: @content_type,
@@ -973,20 +1068,21 @@ class ContentIndex
     end
   end
 
+  # 更新ボタンのクリックの時、分岐する
   def data_edit_btn_clicked
     img = { "img_file_name": @img_file_name,
             "content_type": @content_type,
             "content_id": @content_id,
             "img_del": @img_del }
 
-    result = if @content_type == 'tb_anime'
+    result = if @content_type == @anime
                anime = data_validate
 
                return if anime.nil?
 
                anime['id'] = @content_id
                @anime_controller.modify_anime(Anime.new(anime), img)
-             elsif @content_type == 'tb_book'
+             elsif @content_type == @book
                book = data_validate
 
                return if book.nil?
@@ -1007,10 +1103,11 @@ class ContentIndex
     @img_del = 'N'
     @img_file_name = nil
 
-    load_anime_data if @content_type == 'tb_anime'
-    load_book_data if @content_type == 'tb_book'
+    load_anime_data if @content_type == @anime
+    load_book_data if @content_type == @book
   end
 
+  # 削除ボタンのクリックの時、分岐する
   def remove_btn_clicked
     con = confirm_dialog(:remove_confirm, @window)
     res = con.run
@@ -1021,9 +1118,9 @@ class ContentIndex
       file['refer_tb'] = @content_type
       file['refer_id'] = @content_id
 
-      result = if @content_type == 'tb_anime'
+      result = if @content_type == @anime
                  @anime_controller.remove_anime(@content_id, Files.new(file))
-               elsif @content_type == 'tb_book'
+               elsif @content_type == @book
                  @book_controller.remove_book(@content_id, Files.new(file))
                end
 
@@ -1034,10 +1131,10 @@ class ContentIndex
 
       dialog_message(@window, :info, :remove_success)
 
-      if @content_type == 'tb_anime'
+      if @content_type == @anime
         clear_anime_data
         load_anime_data
-      elsif @content_type == 'tb_book'
+      elsif @content_type == @book
         clear_book_data
         load_book_data
       end
@@ -1047,6 +1144,7 @@ class ContentIndex
     con.destroy
   end
 
+  # リストから追加ボタンのクリックの時、分岐する
   def data_list_btn_clicked
     original = @selected_group_original_combo.active_iter[1]
 
@@ -1054,9 +1152,9 @@ class ContentIndex
 
     data_selector.signal_connect('response') do |widget, response|
       if response == Gtk::ResponseType::OK
-        if @content_type == 'tb_anime'
+        if @content_type == @anime
           load_anime_data
-        elsif @content_type == 'tb_book'
+        elsif @content_type == @book
           load_book_data
         end
       end

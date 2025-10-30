@@ -9,6 +9,7 @@ class CompanySelector < Gtk::Dialog
 
   attr_reader :param
 
+  # 初期化
   def initialize(parent, type, ides)
     title = case type
             when 'studio'
@@ -41,6 +42,7 @@ class CompanySelector < Gtk::Dialog
     show_all
   end
 
+  # UIの設定
   def set_ui
     v_box = Gtk::Box.new(:vertical)
     child.pack_start(v_box, padding: 10)
@@ -93,11 +95,14 @@ class CompanySelector < Gtk::Dialog
 
   end
 
+  # ウィゼットの設定
   def set_signal_connect
+    # 選択リストのダブルクリックイベント
     @selected_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
 
+        # 選択されたデータを解除する
         if selected_row
           company_id = selected_row.name.to_i
           @ides.delete(company_id)
@@ -108,10 +113,12 @@ class CompanySelector < Gtk::Dialog
       end
     end
 
+    # 会社リストのダブルクリックイベント
     @company_list.signal_connect('button_press_event') do |widget, event|
       if event.type == Gdk::EventType::BUTTON2_PRESS
         selected_row = widget.selected_row
 
+        # 選択されたデータを追加する
         if selected_row
           company_id = selected_row.name.to_i
           @ides << company_id
@@ -122,6 +129,7 @@ class CompanySelector < Gtk::Dialog
       end
     end
 
+    # 検索ボタンのイベント
     @search_btn.signal_connect('clicked') do
       company_search = CompanySearch.new(self, I18n.t('menu.search'))
 
@@ -133,12 +141,14 @@ class CompanySelector < Gtk::Dialog
       end
     end
 
+    # 閉じるボタンのイベント
     @close_btn.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
       destroy
     end
   end
 
+  # 会社データの読み込み
   def load_company_data
     clear_list_box(@company_list)
 
@@ -161,6 +171,7 @@ class CompanySelector < Gtk::Dialog
     @company_list.show_all
   end
 
+  # 選択された会社のデータの読み込み
   def load_selected_company
     clear_list_box(@selected_list)
     @param = []
@@ -169,13 +180,15 @@ class CompanySelector < Gtk::Dialog
 
     selected_company = []
 
-    begin
-      @ides.each do |company_id|
-        selected_company << @controller.get_one_company(company_id)
+    @ides.each do |company_id|
+      result = @controller.get_one_company(company_id)
+
+      if result.is_a?(String)
+        dialog_message(self, :error, :db_error, result)
+        next
       end
-    rescue StandardError => e
-      dialog_message(self, :error, :db_error, e.message)
-      return
+
+      selected_company << result
     end
 
     selected_company.each do |item|
@@ -185,6 +198,7 @@ class CompanySelector < Gtk::Dialog
 
       @selected_list.add(row)
 
+      # 選択されたデータを格納して、戻り値として渡す
       @param << { 'name' => item.name, 'id' => item.id }
     end
 

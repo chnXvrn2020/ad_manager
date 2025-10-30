@@ -9,6 +9,7 @@ class GroupEdit < Gtk::Dialog
 
   attr_reader :param
 
+  # 初期化
   def initialize(parent, menu, id = nil)
     super(title: menu, parent: parent,
           flags: %i[modal destroy_with_parent])
@@ -31,6 +32,7 @@ class GroupEdit < Gtk::Dialog
     show_all
   end
 
+  # UIの設定
   def set_ui
 
     h_box = Gtk::Box.new(:horizontal)
@@ -50,6 +52,7 @@ class GroupEdit < Gtk::Dialog
 
     set_combo_box
 
+    # 機能によって分岐する
     case @menu
     when I18n.t('menu.add')
       add_ui
@@ -67,18 +70,21 @@ class GroupEdit < Gtk::Dialog
     end
   end
 
+  # 追加のUIの設定
   def add_ui
     @add_button = Gtk::Button.new(label: I18n.t('menu.add'))
     @add_button.set_size_request(270, 50)
     @btn_box.pack_start(@add_button, expand: true)
   end
 
+  # 検索のUIの設定
   def search_ui
     @search_button = Gtk::Button.new(label: I18n.t('menu.search'))
     @search_button.set_size_request(270, 50)
     @btn_box.pack_start(@search_button, expand: true)
   end
 
+  # 更新のUIの設定
   def modify_ui
     @modify_button = Gtk::Button.new(label: I18n.t('menu.modify'))
     @modify_button.set_size_request(150, 50)
@@ -89,13 +95,16 @@ class GroupEdit < Gtk::Dialog
     @btn_box.pack_start(@remove_button, expand: true)
   end
 
+  # 閉じるボタンのUIの設定
   def close_btn_ui
     @close_button = Gtk::Button.new(label: I18n.t('menu.close'))
     @close_button.set_size_request(270, 50)
     @btn_box.pack_start(@close_button, expand: true)
   end
 
+  # 各種ウィゼットの設定
   def set_signal_connect
+    # リターンキーを押すときに、各種の処理を行う
     signal_connect('key_press_event') do |widget, event|
       if event.keyval == Gdk::Keyval::KEY_Return ||
         event.keyval == Gdk::Keyval::KEY_KP_Enter
@@ -116,13 +125,17 @@ class GroupEdit < Gtk::Dialog
       false
     end
 
+    # 閉じるボタンのクリックイベント
     @close_button.signal_connect('clicked') do
       response(Gtk::ResponseType::OK)
       destroy
     end
   end
 
+  # 各種ウィゼットのクリックイベントの設定
+  # 追加のUIのウィゼットのイベント設定
   def set_add_widgets_connect
+    # 追加ボタンのイクリックイベント
     @add_button.signal_connect('clicked') do
       if @entry.text.to_s.strip.empty?
         dialog_message(self, :warning, :empty_entry)
@@ -157,7 +170,9 @@ class GroupEdit < Gtk::Dialog
     end
   end
 
+  # 検索UIのウィゼットのイベント設定
   def set_search_widgets_connect
+    # 検索ボタンのイクリックイベント
     @search_button.signal_connect('clicked') do
       keyword = @entry.text.to_s.strip
       original = @original_combo.active_iter[1]
@@ -169,7 +184,9 @@ class GroupEdit < Gtk::Dialog
     end
   end
 
+  # 更新UIのウィゼットのイベント設定
   def set_modify_widgets_connect
+    # 更新ボタンのイクリックイベント
     @modify_button.signal_connect('clicked') do
       if @entry.text.to_s.strip.empty?
         dialog_message(self, :warning, :empty_entry)
@@ -200,6 +217,7 @@ class GroupEdit < Gtk::Dialog
       end
     end
 
+    # 削除ボタンのイクリックイベント
     @remove_button.signal_connect('clicked') do
       con = confirm_dialog(:remove_confirm, self)
       res = con.run
@@ -222,14 +240,15 @@ class GroupEdit < Gtk::Dialog
     end
   end
 
+  # オリジナルのコンボボックスの設定
   def set_combo_box
     text_renderer = Gtk::CellRendererText.new
     combo_model = Gtk::ListStore.new(String, Integer)
 
-    original = begin
-      @common_controller.get_type_menu('original')
-    rescue StandardError => e
-      dialog_message(@window, :error, :db_error, e.message)
+    original = @common_controller.get_type_menu('original')
+
+    if original.is_a?(String)
+      dialog_message(@window, :error, :db_error, original)
       return
     end
 
@@ -250,6 +269,7 @@ class GroupEdit < Gtk::Dialog
     @original_combo.active = 0
   end
 
+  # データの読み込み
   def load_data
     group = @group_controller.get_one_group(@id)
 
